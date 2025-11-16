@@ -1,9 +1,51 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
-  imports: [],
+  imports: [
+    // Load environment variables
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    // Configure TypeORM with PostgreSQL
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        const host = configService.get<string>('DB_HOST', 'localhost');
+        const port = configService.get<number>('DB_PORT', 5431); // Changed default to 5431
+        const username = configService.get<string>('DB_USERNAME', 'postgres');
+        // Trim whitespace and ensure it's a string
+        const password = (
+          configService.get<string>('DB_PASSWORD') || 'password'
+        ).trim();
+        const database = configService.get<string>('DB_DATABASE', 'postgres');
+
+        // Log connection details (remove in production)
+        console.log('Database connected:', { host, port, username, database });
+
+        return {
+          type: 'postgres',
+          host,
+          port,
+          username,
+          password: String(password).trim(), // Ensure it's always a string and trim whitespace
+          database,
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: true, // Set to false in production, use migrations instead
+          logging: true, // Enable SQL query logging for development
+          ssl: false, // Disable SSL for local development
+          extra: {
+            trustServerCertificate: true,
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
