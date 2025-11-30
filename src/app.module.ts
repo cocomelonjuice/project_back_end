@@ -3,6 +3,22 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { ProjectsModule } from './projects/projects.module';
+import { IssueTypesModule } from './issue-types/issue-types.module';
+import { PrioritiesModule } from './priorities/priorities.module';
+import { StatusesModule } from './statuses/statuses.module';
+import { IssuesModule } from './issues/issues.module';
+import { BoardsModule } from './boards/boards.module';
+import { SprintsModule } from './sprints/sprints.module';
+import { CommentsModule } from './comments/comments.module';
+import { AttachmentsModule } from './attachments/attachments.module';
+import { LabelsModule } from './labels/labels.module';
+import { WorkflowsModule } from './workflows/workflows.module';
+import { RolesModule } from './roles/roles.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -45,6 +61,22 @@ import { AppService } from './app.service';
       },
       inject: [ConfigService],
     }),
+    UsersModule,
+    AuthModule,
+    ProjectsModule,
+    IssueTypesModule,
+    PrioritiesModule,
+    StatusesModule,
+    IssuesModule,
+    BoardsModule,
+    SprintsModule,
+    CommentsModule,
+    AttachmentsModule,
+    LabelsModule,
+    WorkflowsModule,
+    RolesModule,
+    NotificationsModule,
+    AuditLogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
