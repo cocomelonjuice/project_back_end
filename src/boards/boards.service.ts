@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Board } from './entities/board.entity';
@@ -33,10 +33,27 @@ export class BoardsService {
   }
 
   async findByProject(projectId: string): Promise<Board[]> {
-    return await this.boardsRepository.find({
-      where: { project: { id: projectId } },
-      relations: ['project'],
-    });
+    try {
+      // Try to find boards for the project
+      // If projectId is not a valid UUID, the query will simply return empty array
+      const boards = await this.boardsRepository.find({
+        where: { project: { id: projectId } },
+        relations: ['project'],
+      });
+
+      // Return empty array if no boards found (this is not an error)
+      return boards;
+    } catch (error) {
+      // Handle database/TypeORM errors
+      // If it's a known exception, re-throw it
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      // For other errors (like invalid UUID format in database query), return empty array
+      // This allows the frontend to handle "no boards" gracefully
+      console.warn(`Error fetching boards for project ${projectId}:`, error.message);
+      return [];
+    }
   }
 
   async findOne(id: string): Promise<Board> {

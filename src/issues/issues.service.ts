@@ -129,33 +129,42 @@ export class IssuesService {
   }
 
   async findByProject(projectId: string, query: QueryIssuesDto) {
-    await this.getProject(projectId);
+    try {
+      await this.getProject(projectId);
 
-    const qb = this.issuesRepository
-      .createQueryBuilder('issue')
-      .leftJoinAndSelect('issue.project', 'project')
-      .leftJoinAndSelect('issue.type', 'type')
-      .leftJoinAndSelect('issue.priority', 'priority')
-      .leftJoinAndSelect('issue.status', 'status')
-      .leftJoinAndSelect('issue.assignee', 'assignee')
-      .leftJoinAndSelect('issue.reporter', 'reporter')
-      .leftJoinAndSelect('issue.sprint', 'sprint')
-      .leftJoinAndSelect('issue.labels', 'labels')
-      .where('project.id = :projectId', { projectId });
+      const qb = this.issuesRepository
+        .createQueryBuilder('issue')
+        .leftJoinAndSelect('issue.project', 'project')
+        .leftJoinAndSelect('issue.type', 'type')
+        .leftJoinAndSelect('issue.priority', 'priority')
+        .leftJoinAndSelect('issue.status', 'status')
+        .leftJoinAndSelect('issue.assignee', 'assignee')
+        .leftJoinAndSelect('issue.reporter', 'reporter')
+        .leftJoinAndSelect('issue.sprint', 'sprint')
+        .leftJoinAndSelect('issue.labels', 'labels')
+        .where('project.id = :projectId', { projectId });
 
-    if (query.statusId) {
-      qb.andWhere('status.id = :statusId', { statusId: query.statusId });
+      if (query.statusId) {
+        qb.andWhere('status.id = :statusId', { statusId: query.statusId });
+      }
+
+      if (query.assigneeId) {
+        qb.andWhere('assignee.id = :assigneeId', { assigneeId: query.assigneeId });
+      }
+
+      if (query.priorityId) {
+        qb.andWhere('priority.id = :priorityId', { priorityId: query.priorityId });
+      }
+
+      return await qb.getMany();
+    } catch (error) {
+      console.error('Error in findByProject:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      throw error;
     }
-
-    if (query.assigneeId) {
-      qb.andWhere('assignee.id = :assigneeId', { assigneeId: query.assigneeId });
-    }
-
-    if (query.priorityId) {
-      qb.andWhere('priority.id = :priorityId', { priorityId: query.priorityId });
-    }
-
-    return qb.getMany();
   }
 
   findOne(id: string) {

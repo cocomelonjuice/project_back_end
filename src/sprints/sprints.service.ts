@@ -37,11 +37,30 @@ export class SprintsService {
   }
 
   async findByBoard(boardId: string): Promise<Sprint[]> {
-    return await this.sprintsRepository.find({
-      where: { board: { id: boardId } },
-      relations: ['board'],
-      order: { startDate: 'DESC' },
-    });
+    try {
+      // Try to find sprints for the board
+      // If boardId is not a valid UUID, the query will simply return empty array
+      const sprints = await this.sprintsRepository
+        .createQueryBuilder('sprint')
+        .leftJoinAndSelect('sprint.board', 'board')
+        .where('board.id = :boardId', { boardId })
+        .orderBy('CASE WHEN sprint.startDate IS NULL THEN 1 ELSE 0 END', 'ASC')
+        .addOrderBy('sprint.startDate', 'DESC')
+        .getMany();
+
+      // Return empty array if no sprints found (this is not an error)
+      return sprints;
+    } catch (error) {
+      // Handle database/TypeORM errors
+      // If it's a known exception, re-throw it
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      // For other errors (like invalid UUID format in database query), return empty array
+      // This allows the frontend to handle "no sprints" gracefully
+      console.warn(`Error fetching sprints for board ${boardId}:`, error.message);
+      return [];
+    }
   }
 
   async findOne(id: string): Promise<Sprint> {

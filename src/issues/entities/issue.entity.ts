@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -96,6 +97,11 @@ export class Issue {
   attachments: Attachment[];
 
   @ManyToMany(() => Label, (label) => label.issues)
+  @JoinTable({
+    name: 'issue_labels',
+    joinColumn: { name: 'issue_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'label_id', referencedColumnName: 'id' },
+  })
   labels: Label[];
 }
 
