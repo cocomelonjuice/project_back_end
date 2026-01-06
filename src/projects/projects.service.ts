@@ -4,12 +4,18 @@ import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { User } from '../users/entities/user.entity';
+import { Role } from '../roles/entities/role.entity';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectsRepository: Repository<Project>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly rolesRepository: Repository<Role>,
   ) {}
 
   async create(dto: CreateProjectDto): Promise<Project> {
@@ -75,6 +81,70 @@ export class ProjectsService {
       console.error(`Error deleting project ${id}:`, error);
       throw new BadRequestException(`Failed to delete project: ${error.message || 'Unknown error'}`);
     }
+  }
+
+  async getTeamMembers(projectId: string): Promise<Array<{ user: User; role: Role }>> {
+    // Verify project exists
+    await this.findOne(projectId);
+
+    // Get all roles that belong to this project
+    const projectRoles = await this.rolesRepository
+      .createQueryBuilder('role')
+      .innerJoin('role.projects', 'project', 'project.id = :projectId', { projectId })
+      .getMany();
+
+    if (projectRoles.length === 0) {
+      return [];
+    }
+
+    const roleIds = projectRoles.map((r) => r.id);
+
+    // Get all users who have any of these roles
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role', 'role.id IN (:...roleIds)', { roleIds })
+      .select([
+        'user.id',
+        'user.username',
+        'user.email',
+        'user.displayName',
+        'user.isActive',
+        'user.createdAt',
+        'user.updatedAt',
+      ])
+      .getMany();
+
+    // Build team members: for each user, find their role in this project
+    // Use a more direct query to get the specific role assignment
+    const teamMembers: Array<{ user: User; role: Role }> = [];
+
+    for (const user of users) {
+      // Query to find which specific role this user has for this project
+      // We need to check the join tables to get the exact role assignment
+      const userRoleAssignment = await this.usersRepository
+        .createQueryBuilder('user')
+        .innerJoin('user.roles', 'role')
+        .innerJoin('role.projects', 'project', 'project.id = :projectId', { projectId })
+        .where('user.id = :userId', { userId: user.id })
+        .select(['role.id', 'role.name', 'role.description', 'role.permissions'])
+        .getRawMany();
+
+      if (userRoleAssignment && userRoleAssignment.length > 0) {
+        // Get the most recent role assignment (or first one if multiple)
+        // In a real app, you might want to track assignment date
+        const roleId = userRoleAssignment[0].role_id;
+        const role = projectRoles.find((r) => r.id === roleId);
+        
+        if (role) {
+          teamMembers.push({
+            user,
+            role,
+          });
+        }
+      }
+    }
+
+    return teamMembers;
   }
 }
 

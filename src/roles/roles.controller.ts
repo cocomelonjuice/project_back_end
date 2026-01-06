@@ -94,5 +94,23 @@ export class RolesController {
   ) {
     return this.rolesService.assignRoleToUserInProject(projectId, roleId, userId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('projects/:projectId/roles/:roleId/users/:userId')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Remove a role from a user in a project' })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiParam({ name: 'roleId', description: 'Role UUID' })
+  @ApiParam({ name: 'userId', description: 'User UUID' })
+  @ApiResponse({ status: 200, description: 'Role successfully removed from user in project' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Project, role, or user not found' })
+  removeRoleFromUserInProject(
+    @Param('projectId') projectId: string,
+    @Param('roleId') roleId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.rolesService.removeRoleFromUserInProject(projectId, roleId, userId);
+  }
 }
 

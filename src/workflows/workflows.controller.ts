@@ -104,5 +104,21 @@ export class WorkflowsController {
   ) {
     return this.workflowsService.addTransition(id, createTransitionDto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/transitions/:transitionId')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Remove a status transition from a workflow' })
+  @ApiParam({ name: 'id', description: 'Workflow UUID' })
+  @ApiParam({ name: 'transitionId', description: 'Transition UUID' })
+  @ApiResponse({ status: 200, description: 'Transition successfully removed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Workflow or transition not found' })
+  removeTransition(
+    @Param('id') id: string,
+    @Param('transitionId') transitionId: string,
+  ) {
+    return this.workflowsService.removeTransition(id, transitionId);
+  }
 }
 

@@ -135,5 +135,26 @@ export class WorkflowsService {
 
     return await this.transitionsRepository.save(transition);
   }
+
+  async removeTransition(workflowId: string, transitionId: string): Promise<void> {
+    const workflow = await this.findOne(workflowId);
+
+    const transition = await this.transitionsRepository.findOne({
+      where: { id: transitionId },
+      relations: ['workflow'],
+    });
+
+    if (!transition) {
+      throw new NotFoundException(`Transition with ID ${transitionId} not found`);
+    }
+
+    if (transition.workflow.id !== workflowId) {
+      throw new NotFoundException(
+        `Transition ${transitionId} does not belong to workflow ${workflowId}`,
+      );
+    }
+
+    await this.transitionsRepository.remove(transition);
+  }
 }
 
