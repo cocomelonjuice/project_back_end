@@ -25,11 +25,16 @@ export class UsersService {
   }
 
   findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    return this.usersRepository.find({
+      relations: ['roles'],
+    });
   }
 
   findById(id: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { id } });
+    return this.usersRepository.findOne({
+      where: { id },
+      relations: ['roles'],
+    });
   }
 
   findByEmail(email: string): Promise<User | null> {
@@ -42,7 +47,7 @@ export class UsersService {
 
   async update(id: string, dto: UpdateUserDto): Promise<User | null> {
     await this.usersRepository.update({ id }, dto);
-    return this.findById(id);
+    return this.findById(id); // This will load relations including roles
   }
 
   async remove(id: string): Promise<void> {
