@@ -19,6 +19,7 @@ import { WorkflowsModule } from './workflows/workflows.module';
 import { RolesModule } from './roles/roles.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
     RolesModule,
     NotificationsModule,
     AuditLogsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

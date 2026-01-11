@@ -242,7 +242,7 @@ export class IssuesService {
     const issue = await this.getIssue(id);
     issue.assignee = await this.resolveOptionalRelation(
       this.usersRepository,
-      dto.assigneeId,
+      dto.assigneeId ?? undefined,
       'Assignee',
     );
     return this.issuesRepository.save(issue);
