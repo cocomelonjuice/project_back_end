@@ -34,7 +34,10 @@ export class Notification {
   @Column({ default: false })
   isRead: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ 
+    name: 'created_at',
+    type: 'timestamp with time zone', // Explicitly use timestamp with time zone for UTC
+  })
   createdAt: Date;
 }
 

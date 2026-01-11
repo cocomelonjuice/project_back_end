@@ -61,7 +61,7 @@ export class NotificationsService {
 
     return await this.notificationsRepository.find({
       where: { user: { id: userId } },
-      relations: ['user', 'issue'],
+      relations: ['user', 'issue', 'issue.project'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -69,7 +69,7 @@ export class NotificationsService {
   async findOne(id: string): Promise<Notification> {
     const notification = await this.notificationsRepository.findOne({
       where: { id },
-      relations: ['user', 'issue'],
+      relations: ['user', 'issue', 'issue.project'],
     });
 
     if (!notification) {

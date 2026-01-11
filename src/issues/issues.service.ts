@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { Issue } from './entities/issue.entity';
@@ -13,6 +13,7 @@ import { UpdateIssueDto } from './dto/update-issue.dto';
 import { QueryIssuesDto } from './dto/query-issues.dto';
 import { AssignIssueDto } from './dto/assign-issue.dto';
 import { TransitionIssueDto } from './dto/transition-issue.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class IssuesService {
@@ -31,6 +32,8 @@ export class IssuesService {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(Sprint)
     private readonly sprintsRepository: Repository<Sprint>,
+    @Inject(forwardRef(() => NotificationsService))
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   private async getProject(projectId: string) {
@@ -125,7 +128,24 @@ export class IssuesService {
       sprint,
     });
 
-    return this.issuesRepository.save(issue);
+    const savedIssue = await this.issuesRepository.save(issue);
+
+    // Create notification for assignee if issue is assigned
+    if (savedIssue.assignee) {
+      try {
+        await this.notificationsService.create(savedIssue.assignee.id, {
+          title: 'Issue assigned to you',
+          message: `Issue "${savedIssue.summary}" has been assigned to you`,
+          type: 'issue_assigned',
+          issueId: savedIssue.id,
+        });
+      } catch (error) {
+        // Log error but don't fail the issue creation
+        console.error('Failed to create notification for issue assignment:', error);
+      }
+    }
+
+    return savedIssue;
   }
 
   async findByProject(projectId: string, query: QueryIssuesDto) {
@@ -173,6 +193,8 @@ export class IssuesService {
 
   async update(id: string, dto: UpdateIssueDto) {
     const issue = await this.getIssue(id);
+    const oldAssignee = issue.assignee;
+    const oldStatus = issue.status;
 
     if (dto.summary !== undefined) {
       issue.summary = dto.summary;
@@ -230,7 +252,35 @@ export class IssuesService {
       );
     }
 
-    return this.issuesRepository.save(issue);
+    const savedIssue = await this.issuesRepository.save(issue);
+
+    // Create notifications for changes
+    try {
+      // Notify if assignee changed
+      if (dto.assigneeId !== undefined && savedIssue.assignee && savedIssue.assignee.id !== oldAssignee?.id) {
+        await this.notificationsService.create(savedIssue.assignee.id, {
+          title: 'Issue assigned to you',
+          message: `Issue "${savedIssue.summary}" has been assigned to you`,
+          type: 'issue_assigned',
+          issueId: savedIssue.id,
+        });
+      }
+
+      // Notify if status changed and assignee exists
+      if (dto.statusId !== undefined && savedIssue.status && savedIssue.status.id !== oldStatus?.id && savedIssue.assignee) {
+        await this.notificationsService.create(savedIssue.assignee.id, {
+          title: 'Issue status changed',
+          message: `Issue "${savedIssue.summary}" status changed to "${savedIssue.status.name}"`,
+          type: 'status_changed',
+          issueId: savedIssue.id,
+        });
+      }
+    } catch (error) {
+      // Log error but don't fail the update
+      console.error('Failed to create notification for issue update:', error);
+    }
+
+    return savedIssue;
   }
 
   async remove(id: string) {
@@ -240,22 +290,56 @@ export class IssuesService {
 
   async assign(id: string, dto: AssignIssueDto) {
     const issue = await this.getIssue(id);
+    const oldAssignee = issue.assignee;
     issue.assignee = await this.resolveOptionalRelation(
       this.usersRepository,
       dto.assigneeId ?? undefined,
       'Assignee',
     );
-    return this.issuesRepository.save(issue);
+    const savedIssue = await this.issuesRepository.save(issue);
+
+    // Create notification for new assignee if assignee changed
+    if (savedIssue.assignee && savedIssue.assignee.id !== oldAssignee?.id) {
+      try {
+        await this.notificationsService.create(savedIssue.assignee.id, {
+          title: 'Issue assigned to you',
+          message: `Issue "${savedIssue.summary}" has been assigned to you`,
+          type: 'issue_assigned',
+          issueId: savedIssue.id,
+        });
+      } catch (error) {
+        console.error('Failed to create notification for issue assignment:', error);
+      }
+    }
+
+    return savedIssue;
   }
 
   async transition(id: string, dto: TransitionIssueDto) {
     const issue = await this.getIssue(id);
+    const oldStatus = issue.status;
     issue.status = await this.resolveOptionalRelation(
       this.statusesRepository,
       dto.statusId,
       'Status',
     );
-    return this.issuesRepository.save(issue);
+    const savedIssue = await this.issuesRepository.save(issue);
+
+    // Create notification for assignee if status changed
+    if (savedIssue.assignee && savedIssue.status && savedIssue.status.id !== oldStatus?.id) {
+      try {
+        await this.notificationsService.create(savedIssue.assignee.id, {
+          title: 'Issue status changed',
+          message: `Issue "${savedIssue.summary}" status changed to "${savedIssue.status.name}"`,
+          type: 'status_changed',
+          issueId: savedIssue.id,
+        });
+      } catch (error) {
+        console.error('Failed to create notification for status change:', error);
+      }
+    }
+
+    return savedIssue;
   }
 }
 

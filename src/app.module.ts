@@ -55,6 +55,7 @@ import { SearchModule } from './search/search.module';
           synchronize: true, // Set to false in production, use migrations instead
           logging: true, // Enable SQL query logging for development
           ssl: false, // Disable SSL for local development
+          timezone: 'UTC', // Ensure all timestamps are stored and retrieved in UTC
           extra: {
             trustServerCertificate: true,
           },
