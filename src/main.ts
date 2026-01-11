@@ -2,6 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { DataSource } from 'typeorm';
+import { seedRoles } from './scripts/seed-roles';
+import { assignAdminRoleToUser } from './scripts/assign-admin-role';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -62,6 +65,22 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  
+  // Seed roles on startup
+  try {
+    const dataSource = app.get(DataSource);
+    await seedRoles(dataSource);
+    
+    // Also try to assign admin role to user "admin" if exists (in case seed didn't catch it)
+    try {
+      await assignAdminRoleToUser(dataSource, 'admin');
+    } catch (error) {
+      // User "admin" might not exist, that's okay
+      console.log('ℹ️  User "admin" not found or already has admin role');
+    }
+  } catch (error) {
+    console.warn('⚠️  Could not seed roles:', error.message);
+  }
   
   await app.listen(process.env.PORT ?? 3000);
   console.log(`🚀 Application is running on: http://localhost:${process.env.PORT ?? 3000}`);

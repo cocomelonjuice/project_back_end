@@ -50,9 +50,11 @@ export class AuthService {
       isActive: true,
     });
 
+    // Load user with roles for token generation
+    const userWithRoles = await this.usersService.findById(user.id);
     return {
-      user: this.sanitizeUser(user),
-      accessToken: this.generateToken(user),
+      user: this.sanitizeUser(userWithRoles || user),
+      accessToken: this.generateToken(userWithRoles || user),
     };
   }
 
@@ -65,6 +67,10 @@ export class AuthService {
     const user = await lookup;
 
     if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.passwordHash) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -83,14 +89,35 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.validateUser(dto.identifier, dto.password);
+    // Load user with roles for token generation
+    const userWithRoles = await this.usersService.findById(user.id);
     return {
-      user: this.sanitizeUser(user),
-      accessToken: this.generateToken(user),
+      user: this.sanitizeUser(userWithRoles || user),
+      accessToken: this.generateToken(userWithRoles || user),
     };
   }
 
+  async getUserProfile(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return this.sanitizeUser(user);
+  }
+
   private generateToken(user: User) {
-    const payload = { sub: user.id, username: user.username };
+    // Extract roles and permissions from user's roles
+    const roles = user.roles?.map((role) => role.name) || [];
+    const permissions = user.roles?.flatMap((role) => role.permissions || []) || [];
+    // Remove duplicates from permissions
+    const uniquePermissions = [...new Set(permissions)];
+
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      roles,
+      permissions: uniquePermissions,
+    };
     return this.jwtService.sign(payload);
   }
 }

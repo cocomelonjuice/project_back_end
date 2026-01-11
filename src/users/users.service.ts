@@ -38,11 +38,17 @@ export class UsersService {
   }
 
   findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } });
+    return this.usersRepository.findOne({
+      where: { email },
+      select: ['id', 'username', 'email', 'displayName', 'passwordHash', 'isActive', 'createdAt', 'updatedAt'],
+    });
   }
 
   findByUsername(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { username } });
+    return this.usersRepository.findOne({
+      where: { username },
+      select: ['id', 'username', 'email', 'displayName', 'passwordHash', 'isActive', 'createdAt', 'updatedAt'],
+    });
   }
 
   async update(id: string, dto: UpdateUserDto): Promise<User | null> {

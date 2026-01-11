@@ -32,8 +32,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Returns current user information' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  getProfile(@Req() req: any) {
-    return req.user;
+  async getProfile(@Req() req: any) {
+    // Load full user with roles from database
+    const user = await this.authService.getUserProfile(req.user.id);
+    return user;
   }
 }
 

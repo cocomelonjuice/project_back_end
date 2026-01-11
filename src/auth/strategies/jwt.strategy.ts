@@ -24,11 +24,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found');
     }
 
+    // Extract roles and permissions from user's roles
+    const roles = user.roles?.map((role) => role.name) || [];
+    const permissions = user.roles?.flatMap((role) => role.permissions || []) || [];
+    // Remove duplicates from permissions
+    const uniquePermissions = [...new Set(permissions)];
+
     return {
       id: user.id,
       username: user.username,
       email: user.email,
       displayName: user.displayName,
+      roles,
+      permissions: uniquePermissions,
     };
   }
 }
