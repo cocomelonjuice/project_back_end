@@ -20,9 +20,17 @@ import { RolesModule } from './roles/roles.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { SearchModule } from './search/search.module';
+import { ChatModule } from './chat/chat.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [
+        { name: 'default', ttl: 60_000, limit: 600 },
+        { name: 'chatMessage', ttl: 60_000, limit: 25 },
+      ],
+    }),
     // Load environment variables
     ConfigModule.forRoot({
       isGlobal: true,
@@ -80,6 +88,7 @@ import { SearchModule } from './search/search.module';
     NotificationsModule,
     AuditLogsModule,
     SearchModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

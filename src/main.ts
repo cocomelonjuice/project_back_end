@@ -49,6 +49,7 @@ async function bootstrap() {
     .addTag('Roles', 'Role and permission management')
     .addTag('Notifications', 'User notification management')
     .addTag('Audit Logs', 'Audit log viewing')
+    .addTag('Chat', 'AI assistant chat (Groq) and conversation history')
     .build();
   
   const document = SwaggerModule.createDocument(app, config);
