@@ -11,6 +11,9 @@ import { LabelsModule } from '../labels/labels.module';
 import { WorkflowsModule } from '../workflows/workflows.module';
 import { RolesModule } from '../roles/roles.module';
 import { UsersModule } from '../users/users.module';
+import { StatusesModule } from '../statuses/statuses.module';
+import { IssueTypesModule } from '../issue-types/issue-types.module';
+import { PrioritiesModule } from '../priorities/priorities.module';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { ChatConversation } from './entities/chat-conversation.entity';
@@ -30,6 +33,9 @@ import { ChatMessage } from './entities/chat-message.entity';
     WorkflowsModule,
     RolesModule,
     UsersModule,
+    StatusesModule,
+    IssueTypesModule,
+    PrioritiesModule,
   ],
   controllers: [ChatController],
   providers: [ChatService],

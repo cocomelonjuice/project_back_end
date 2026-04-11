@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Injectable,
   InternalServerErrorException,
   ServiceUnavailableException,
@@ -68,9 +69,12 @@ export class GroqAiService {
         const msg =
           (err.response?.data as { error?: { message?: string } })?.error
             ?.message ?? err.message;
-        throw new InternalServerErrorException(
-          `Groq request failed: ${msg}`,
-        );
+        const status = err.response?.status;
+        const code =
+          typeof status === 'number' && status >= 400 && status < 600
+            ? status
+            : 502;
+        throw new HttpException(`Groq request failed: ${msg}`, code);
       }
       throw new InternalServerErrorException('Groq request failed');
     }
