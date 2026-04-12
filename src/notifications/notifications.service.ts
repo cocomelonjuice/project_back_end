@@ -1,13 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { User } from '../users/entities/user.entity';
 import { Issue } from '../issues/entities/issue.entity';
+import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+
   constructor(
     @InjectRepository(Notification)
     private notificationsRepository: Repository<Notification>,
@@ -15,6 +18,7 @@ export class NotificationsService {
     private usersRepository: Repository<User>,
     @InjectRepository(Issue)
     private issuesRepository: Repository<Issue>,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(
@@ -47,7 +51,53 @@ export class NotificationsService {
       issue,
     });
 
-    return await this.notificationsRepository.save(notification);
+    const saved = await this.notificationsRepository.save(notification);
+    void this.pushNotificationRealtime(userId, saved.id);
+    return saved;
+  }
+
+  /** Shape matches REST list items; used for Socket.IO `notification:new`. */
+  private toSocketPayload(n: Notification): Record<string, unknown> {
+    const issue = n.issue;
+    return {
+      id: n.id,
+      userId: n.user?.id,
+      issueId: issue?.id ?? undefined,
+      issue: issue
+        ? {
+            id: issue.id,
+            summary: issue.summary,
+            projectId: issue.project?.id,
+            project: issue.project ? { id: issue.project.id } : undefined,
+          }
+        : undefined,
+      title: n.title,
+      message: n.message ?? undefined,
+      type: n.type,
+      isRead: n.isRead,
+      createdAt:
+        n.createdAt instanceof Date
+          ? n.createdAt.toISOString()
+          : String(n.createdAt),
+    };
+  }
+
+  private async pushNotificationRealtime(userId: string, notificationId: string) {
+    try {
+      const full = await this.notificationsRepository.findOne({
+        where: { id: notificationId },
+        relations: ['user', 'issue', 'issue.project'],
+      });
+      if (full) {
+        this.notificationsGateway.emitNotificationNew(
+          userId,
+          this.toSocketPayload(full),
+        );
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Real-time notification emit failed: ${msg}`);
+    }
   }
 
   async findByUser(userId: string): Promise<Notification[]> {
