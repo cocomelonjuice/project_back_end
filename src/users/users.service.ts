@@ -40,8 +40,60 @@ export class UsersService {
   findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-      select: ['id', 'username', 'email', 'displayName', 'passwordHash', 'isActive', 'createdAt', 'updatedAt'],
+      select: [
+        'id',
+        'username',
+        'email',
+        'displayName',
+        'passwordHash',
+        'isActive',
+        'createdAt',
+        'updatedAt',
+        'passwordResetTokenHash',
+        'passwordResetExpires',
+      ],
     });
+  }
+
+  async findByEmailCaseInsensitive(email: string): Promise<User | null> {
+    const trimmed = email.trim();
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where('LOWER(user.email) = LOWER(:e)', { e: trimmed })
+      .getOne();
+  }
+
+  async findByPasswordResetTokenHash(
+    tokenHash: string,
+  ): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { passwordResetTokenHash: tokenHash },
+    });
+  }
+
+  async setPasswordResetFields(
+    userId: string,
+    tokenHash: string,
+    expires: Date,
+  ): Promise<void> {
+    await this.usersRepository.update(
+      { id: userId },
+      { passwordResetTokenHash: tokenHash, passwordResetExpires: expires },
+    );
+  }
+
+  async updatePasswordClearReset(
+    userId: string,
+    passwordHash: string,
+  ): Promise<void> {
+    await this.usersRepository.update(
+      { id: userId },
+      {
+        passwordHash,
+        passwordResetTokenHash: null,
+        passwordResetExpires: null,
+      },
+    );
   }
 
   findByUsername(username: string): Promise<User | null> {

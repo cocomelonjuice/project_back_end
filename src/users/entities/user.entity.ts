@@ -30,6 +30,17 @@ export class User {
   @Column({ name: 'password_hash', length: 255 })
   passwordHash: string;
 
+  @Column({
+    name: 'password_reset_token_hash',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
+  passwordResetTokenHash: string | null;
+
+  @Column({ name: 'password_reset_expires', type: 'timestamptz', nullable: true })
+  passwordResetExpires: Date | null;
+
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
