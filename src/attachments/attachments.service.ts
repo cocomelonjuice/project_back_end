@@ -5,6 +5,7 @@ import { Attachment } from './entities/attachment.entity';
 import { Issue } from '../issues/entities/issue.entity';
 import { User } from '../users/entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { SpacesService } from '../storage/spaces.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -21,6 +22,7 @@ export class AttachmentsService {
     private usersRepository: Repository<User>,
     @Inject(forwardRef(() => NotificationsService))
     private readonly notificationsService: NotificationsService,
+    private readonly spacesService: SpacesService,
   ) {
     // Ensure upload directory exists
     if (!fs.existsSync(this.uploadDir)) {
@@ -50,20 +52,20 @@ export class AttachmentsService {
       throw new NotFoundException(`User with ID ${uploadedById} not found`);
     }
 
-    // Generate unique filename
+    // Generate unique filename/key
     const fileExt = path.extname(file.originalname);
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
-    const filePath = path.join(this.uploadDir, fileName);
-
-    // Save file to disk
-    fs.writeFileSync(filePath, file.buffer);
+    const objectKey = `attachments/${issueId}/${fileName}`;
+    await this.spacesService.uploadObject(objectKey, file.buffer, file.mimetype);
 
     const attachment = this.attachmentsRepository.create({
       filename: fileName,
       originalFilename: file.originalname,
       mimeType: file.mimetype,
       size: file.size,
-      filePath: filePath,
+      filePath: null,
+      storageProvider: 'do_spaces',
+      storageKey: objectKey,
       issue,
       uploadedBy,
     });
@@ -133,21 +135,54 @@ export class AttachmentsService {
   async getFileBuffer(id: string): Promise<{ buffer: Buffer; attachment: Attachment }> {
     const attachment = await this.findOne(id);
 
-    if (!fs.existsSync(attachment.filePath)) {
-      throw new NotFoundException('File not found on disk');
+    // Legacy local files remain downloadable
+    if (attachment.filePath) {
+      if (!fs.existsSync(attachment.filePath)) {
+        throw new NotFoundException('File not found on disk');
+      }
+      const buffer = fs.readFileSync(attachment.filePath);
+      return { buffer, attachment };
     }
 
-    const buffer = fs.readFileSync(attachment.filePath);
+    if (attachment.storageProvider === 'do_spaces' && attachment.storageKey) {
+      const signedUrl = await this.spacesService.getSignedDownloadUrl(
+        attachment.storageKey,
+      );
+      const response = await fetch(signedUrl);
+      if (!response.ok) {
+        throw new NotFoundException('File not found in storage');
+      }
+      const arrBuf = await response.arrayBuffer();
+      const buffer = Buffer.from(arrBuf);
+      return { buffer, attachment };
+    }
 
-    return { buffer, attachment };
+    throw new NotFoundException('Attachment has no valid storage source');
+  }
+
+  async getDownloadUrl(id: string): Promise<{
+    downloadUrl: string | null;
+    provider: string;
+  }> {
+    const attachment = await this.findOne(id);
+    if (attachment.storageProvider === 'do_spaces' && attachment.storageKey) {
+      const downloadUrl = await this.spacesService.getSignedDownloadUrl(
+        attachment.storageKey,
+      );
+      return { downloadUrl, provider: 'do_spaces' };
+    }
+    return { downloadUrl: null, provider: 'local' };
   }
 
   async remove(id: string): Promise<void> {
     const attachment = await this.findOne(id);
 
     // Delete file from disk
-    if (fs.existsSync(attachment.filePath)) {
+    if (attachment.filePath && fs.existsSync(attachment.filePath)) {
       fs.unlinkSync(attachment.filePath);
+    }
+    if (attachment.storageProvider === 'do_spaces' && attachment.storageKey) {
+      await this.spacesService.deleteObject(attachment.storageKey);
     }
 
     await this.attachmentsRepository.remove(attachment);

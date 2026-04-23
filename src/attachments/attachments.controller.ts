@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Post,
   Get,
@@ -11,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import {
   ApiTags,
   ApiOperation,
@@ -29,10 +31,26 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class AttachmentsController {
+  private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+  private static readonly ALLOWED_MIME_TYPES = new Set<string>([
+    'image/jpeg',
+    'image/png',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ]);
+
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
   @Post('issues/:issueId/attachments')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: AttachmentsController.MAX_FILE_SIZE, files: 1 },
+    }),
+  )
   @ApiOperation({ summary: 'Upload an attachment to an issue' })
   @ApiParam({ name: 'issueId', description: 'Issue UUID' })
   @ApiConsumes('multipart/form-data')
@@ -56,7 +74,15 @@ export class AttachmentsController {
     @Req() req: any,
   ) {
     if (!file) {
-      throw new Error('No file provided');
+      throw new BadRequestException('No file provided');
+    }
+    if (file.size > AttachmentsController.MAX_FILE_SIZE) {
+      throw new BadRequestException('File too large. Maximum size is 10 MB');
+    }
+    if (!AttachmentsController.ALLOWED_MIME_TYPES.has(file.mimetype)) {
+      throw new BadRequestException(
+        'Unsupported file type. Allowed: jpg, png, pdf, doc, docx, xls, xlsx',
+      );
     }
 
     return await this.attachmentsService.create(issueId, req.user.id, {
@@ -102,6 +128,16 @@ export class AttachmentsController {
       `attachment; filename="${attachment.originalFilename}"`,
     );
     res.send(buffer);
+  }
+
+  @Get('attachments/:id/download-url')
+  @ApiOperation({ summary: 'Get signed download URL for an attachment (private storage)' })
+  @ApiParam({ name: 'id', description: 'Attachment UUID' })
+  @ApiResponse({ status: 200, description: 'Returns signed URL when available' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Attachment not found' })
+  getDownloadUrl(@Param('id') id: string) {
+    return this.attachmentsService.getDownloadUrl(id);
   }
 
   @Delete('attachments/:id')

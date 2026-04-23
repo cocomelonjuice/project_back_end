@@ -37,8 +37,19 @@ export class Attachment {
   @Column({ type: 'bigint' })
   size: number; // File size in bytes
 
-  @Column({ length: 500 })
-  filePath: string; // Path to stored file
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  filePath: string | null; // Legacy local path
+
+  @Column({
+    name: 'storage_provider',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  storageProvider: string | null; // e.g. do_spaces, local
+
+  @Column({ name: 'storage_key', type: 'varchar', length: 500, nullable: true })
+  storageKey: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
