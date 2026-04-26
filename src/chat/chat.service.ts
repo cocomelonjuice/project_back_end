@@ -255,7 +255,7 @@ type SearchProjectLite = { id: string; name: string; key: string };
 type SearchIssueLite = {
   id: string;
   summary: string;
-  project?: { key?: string | null } | null;
+  project?: { id?: string | null; key?: string | null } | null;
 };
 type SearchUserLite = {
   id: string;
@@ -934,7 +934,13 @@ export class ChatService {
       const firstProject = projects[0];
       const firstIssue = issues[0];
       const firstUser = users[0];
-      const tail = `Projects: ${result.projects.length}, Issues: ${result.issues.length}, Users: ${result.users.length} (total: ${result.total}).${firstProject ? `\nTop project: ${firstProject.name} (${firstProject.key}).` : ''}${firstIssue ? `\nTop issue: ${firstIssue.summary}.` : ''}${firstUser ? `\nTop user: ${firstUser.displayName || firstUser.username}.` : ''}`;
+      const projectLink = firstProject ? `/projects/${firstProject.id}` : '';
+      const issueLink =
+        firstIssue?.project?.id && firstIssue?.id
+          ? `/projects/${firstIssue.project.id}/issues/${firstIssue.id}`
+          : '';
+      const userLink = firstUser ? `/users/${firstUser.id}` : '';
+      const tail = `Projects: ${result.projects.length}, Issues: ${result.issues.length}, Users: ${result.users.length} (total: ${result.total}).${firstProject ? `\nTop project: ${firstProject.name} (${firstProject.key}).` : ''}${projectLink ? `\nProject link: ${projectLink}` : ''}${firstIssue ? `\nTop issue: ${firstIssue.summary}.` : ''}${issueLink ? `\nIssue link: ${issueLink}` : ''}${firstUser ? `\nTop user: ${firstUser.displayName || firstUser.username}.` : ''}${userLink ? `\nUser link: ${userLink}` : ''}`;
       return this.actionSuccess(locale, tail, `Tìm kiếm: ${tail}`);
     }
 
