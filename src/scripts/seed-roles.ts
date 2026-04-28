@@ -42,6 +42,23 @@ export async function seedRoles(dataSource: DataSource) {
       ],
     },
     {
+      name: 'manager',
+      description: 'Manager with project and workflow management permissions',
+      permissions: [
+        'projects:create',
+        'projects:read',
+        'projects:update',
+        'projects:delete',
+        'issues:create',
+        'issues:read',
+        'issues:update',
+        'workflows:create',
+        'workflows:read',
+        'workflows:update',
+        'workflows:delete',
+      ],
+    },
+    {
       name: 'user',
       description: 'Regular user with basic permissions',
       permissions: [
@@ -55,17 +72,9 @@ export async function seedRoles(dataSource: DataSource) {
         'attachments:read',
       ],
     },
-    {
-      name: 'viewer',
-      description: 'Read-only user',
-      permissions: [
-        'projects:read',
-        'issues:read',
-        'comments:read',
-        'attachments:read',
-      ],
-    },
   ];
+
+  const canonicalRoleNames = new Set(defaultRoles.map((role) => role.name));
 
   // Create or update roles
   for (const roleData of defaultRoles) {
@@ -81,6 +90,50 @@ export async function seedRoles(dataSource: DataSource) {
       role = roleRepository.create(roleData);
       await roleRepository.save(role);
     }
+  }
+
+  const userRole = await roleRepository.findOne({ where: { name: 'user' } });
+  if (userRole) {
+    const usersWithRoles = await userRepository.find({ relations: ['roles'] });
+    for (const user of usersWithRoles) {
+      const userRoles = user.roles || [];
+      const hasNonCanonicalRole = userRoles.some(
+        (role) => !canonicalRoleNames.has(role.name),
+      );
+      const hasCanonicalRole = userRoles.some((role) =>
+        canonicalRoleNames.has(role.name),
+      );
+      const hasUserRole = userRoles.some((role) => role.name === 'user');
+
+      if ((hasNonCanonicalRole || !hasCanonicalRole) && !hasUserRole) {
+        user.roles = [...userRoles, userRole];
+        await userRepository.save(user);
+      }
+    }
+  }
+
+  const staleRoles = await roleRepository.find();
+  for (const staleRole of staleRoles) {
+    if (canonicalRoleNames.has(staleRole.name)) {
+      continue;
+    }
+
+    console.log(`🧹 Cleaning up non-canonical role "${staleRole.name}"...`);
+    await dataSource
+      .createQueryBuilder()
+      .delete()
+      .from('project_roles')
+      .where('role_id = :roleId', { roleId: staleRole.id })
+      .execute();
+
+    await dataSource
+      .createQueryBuilder()
+      .delete()
+      .from('user_roles')
+      .where('role_id = :roleId', { roleId: staleRole.id })
+      .execute();
+
+    await roleRepository.delete(staleRole.id);
   }
 
   // Assign admin role to first user OR user with username "admin" (if exists and doesn't have admin role)

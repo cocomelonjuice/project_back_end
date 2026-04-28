@@ -874,6 +874,14 @@ export class ChatService {
     return roles.some((r) => r === 'admin');
   }
 
+  private isManager(roles: string[]): boolean {
+    return roles.some((r) => r === 'manager');
+  }
+
+  private canManageProjectsOrWorkflows(roles: string[]): boolean {
+    return this.isAdmin(roles) || this.isManager(roles);
+  }
+
   private formatExecutionError(
     err: unknown,
     msg: ReturnType<typeof chatAssistantMessages>,
@@ -917,6 +925,26 @@ export class ChatService {
 
     if (decision.intent === 'none') {
       return decision.reply;
+    }
+
+    const managerDenied = this.actionSuccess(
+      locale,
+      'Administrator or manager privileges are required for this action.',
+      'Cần quyền quản trị viên hoặc quản lý để thực hiện thao tác này.',
+    );
+
+    if (
+      [
+        'create_project',
+        'update_project',
+        'create_workflow',
+        'update_workflow',
+        'delete_workflow',
+      ].includes(decision.intent)
+    ) {
+      if (!this.canManageProjectsOrWorkflows(userRoles)) {
+        return managerDenied;
+      }
     }
 
     if (decision.intent === 'search_global') {

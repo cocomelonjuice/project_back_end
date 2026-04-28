@@ -19,13 +19,16 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 
 @ApiTags('Projects')
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('projects:create')
   @Post()
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new project' })
@@ -58,7 +61,8 @@ export class ProjectsController {
     return this.projectsService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('projects:update')
   @Put(':id')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update project' })
@@ -70,7 +74,8 @@ export class ProjectsController {
     return this.projectsService.update(id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('projects:delete')
   @Delete(':id')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete project' })

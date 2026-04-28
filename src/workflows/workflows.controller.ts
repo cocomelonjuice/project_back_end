@@ -14,13 +14,16 @@ import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { CreateTransitionDto } from './dto/create-transition.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 
 @ApiTags('Workflows')
 @Controller('workflows')
 export class WorkflowsController {
   constructor(private readonly workflowsService: WorkflowsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('workflows:create')
   @Post()
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new workflow' })
@@ -54,7 +57,8 @@ export class WorkflowsController {
     return this.workflowsService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('workflows:update')
   @Put(':id')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update workflow' })
@@ -66,7 +70,8 @@ export class WorkflowsController {
     return this.workflowsService.update(id, updateWorkflowDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('workflows:delete')
   @Delete(':id')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete workflow' })
