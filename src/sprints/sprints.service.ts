@@ -27,6 +27,10 @@ export class SprintsService {
       throw new NotFoundException(`Board with ID ${boardId} not found`);
     }
 
+    if ((board.type || '').toLowerCase() !== 'scrum') {
+      throw new BadRequestException('Sprints are only available for Scrum boards');
+    }
+
     const sprint = this.sprintsRepository.create({
       ...createSprintDto,
       board,
@@ -92,6 +96,10 @@ export class SprintsService {
   async start(id: string): Promise<Sprint> {
     const sprint = await this.findOne(id);
 
+    if ((sprint.board?.type || '').toLowerCase() !== 'scrum') {
+      throw new BadRequestException('Only Scrum board sprints can be started');
+    }
+
     if (sprint.status === 'active') {
       throw new BadRequestException('Sprint is already active');
     }
@@ -108,6 +116,10 @@ export class SprintsService {
 
   async complete(id: string): Promise<Sprint> {
     const sprint = await this.findOne(id);
+
+    if ((sprint.board?.type || '').toLowerCase() !== 'scrum') {
+      throw new BadRequestException('Only Scrum board sprints can be completed');
+    }
 
     if (sprint.status !== 'active') {
       throw new BadRequestException('Only active sprints can be completed');

@@ -11,6 +11,8 @@ import { User } from '../users/entities/user.entity';
 import { Sprint } from '../sprints/entities/sprint.entity';
 import { Label } from '../labels/entities/label.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { Workflow } from '../workflows/entities/workflow.entity';
+import { WorkflowTransition } from '../workflows/entities/workflow-transition.entity';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
       User,
       Sprint,
       Label,
+      Workflow,
+      WorkflowTransition,
     ]),
     forwardRef(() => NotificationsModule),
   ],

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Workflow } from './entities/workflow.entity';
@@ -22,18 +22,30 @@ export class WorkflowsService {
     private statusesRepository: Repository<Status>,
   ) {}
 
-  async create(createWorkflowDto: CreateWorkflowDto): Promise<Workflow> {
-    let project: Project | null = null;
-    if (createWorkflowDto.projectId) {
-      project = await this.projectsRepository.findOne({
-        where: { id: createWorkflowDto.projectId },
-      });
-      if (!project) {
-        throw new NotFoundException(
-          `Project with ID ${createWorkflowDto.projectId} not found`,
-        );
-      }
+  private async ensureProjectHasNoWorkflow(projectId: string, excludeWorkflowId?: string) {
+    const existing = await this.workflowsRepository.findOne({
+      where: {
+        isActive: true,
+        project: { id: projectId } as any,
+      },
+      relations: ['project'],
+    });
+
+    if (existing && existing.id !== excludeWorkflowId) {
+      throw new BadRequestException('This project already has a workflow assigned');
     }
+  }
+
+  async create(createWorkflowDto: CreateWorkflowDto): Promise<Workflow> {
+    const project = await this.projectsRepository.findOne({
+      where: { id: createWorkflowDto.projectId },
+    });
+    if (!project) {
+      throw new NotFoundException(
+        `Project with ID ${createWorkflowDto.projectId} not found`,
+      );
+    }
+    await this.ensureProjectHasNoWorkflow(createWorkflowDto.projectId);
 
     const workflow = this.workflowsRepository.create({
       name: createWorkflowDto.name,
@@ -69,19 +81,25 @@ export class WorkflowsService {
     const workflow = await this.findOne(id);
 
     if (updateWorkflowDto.projectId !== undefined) {
-      if (updateWorkflowDto.projectId) {
-        const project = await this.projectsRepository.findOne({
-          where: { id: updateWorkflowDto.projectId },
-        });
-        if (!project) {
-          throw new NotFoundException(
-            `Project with ID ${updateWorkflowDto.projectId} not found`,
-          );
-        }
-        workflow.project = project;
-      } else {
-        workflow.project = null;
+      const currentProjectId = workflow.project?.id || null;
+      const targetProjectId = updateWorkflowDto.projectId;
+
+      if (currentProjectId && targetProjectId !== currentProjectId) {
+        throw new BadRequestException(
+          'Detach workflow from current project before assigning it to another project',
+        );
       }
+
+      const project = await this.projectsRepository.findOne({
+        where: { id: updateWorkflowDto.projectId },
+      });
+      if (!project) {
+        throw new NotFoundException(
+          `Project with ID ${updateWorkflowDto.projectId} not found`,
+        );
+      }
+      await this.ensureProjectHasNoWorkflow(updateWorkflowDto.projectId, workflow.id);
+      workflow.project = project;
     }
 
     Object.assign(workflow, {
@@ -91,6 +109,20 @@ export class WorkflowsService {
     });
 
     return await this.workflowsRepository.save(workflow);
+  }
+
+  async detachFromProject(id: string): Promise<Workflow> {
+    const workflow = await this.findOne(id);
+    workflow.project = null;
+    workflow.isActive = false;
+    return await this.workflowsRepository.save(workflow);
+  }
+
+  async getByProject(projectId: string): Promise<Workflow | null> {
+    return await this.workflowsRepository.findOne({
+      where: { isActive: true, project: { id: projectId } as any },
+      relations: ['project', 'transitions', 'transitions.fromStatus', 'transitions.toStatus'],
+    });
   }
 
   async remove(id: string): Promise<void> {

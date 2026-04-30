@@ -6,13 +6,17 @@ import {
   Param,
   Post,
   Put,
+  Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
+  ApiQuery,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
@@ -43,9 +47,22 @@ export class ProjectsController {
   @Get()
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all projects' })
+  @ApiQuery({
+    name: 'scope',
+    required: false,
+    description: 'Use "managed" to return only projects managed by current user',
+  })
   @ApiResponse({ status: 200, description: 'Returns list of all projects' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  findAll() {
+  findAll(
+    @Req() req: Request & { user: { id: string; roles?: string[] } },
+    @Query('scope') scope?: string,
+  ) {
+    if (scope === 'managed') {
+      const roles: string[] = req.user?.roles || [];
+      const isAdmin = roles.includes('admin');
+      return this.projectsService.findManagedProjects(req.user.id, isAdmin);
+    }
     return this.projectsService.findAll();
   }
 

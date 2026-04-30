@@ -46,6 +46,16 @@ export class WorkflowsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('project/:projectId')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get workflow assigned to project' })
+  @ApiParam({ name: 'projectId', description: 'Project UUID' })
+  @ApiResponse({ status: 200, description: 'Returns workflow for project or null' })
+  getByProject(@Param('projectId') projectId: string) {
+    return this.workflowsService.getByProject(projectId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get workflow by ID' })
@@ -81,6 +91,17 @@ export class WorkflowsController {
   @ApiResponse({ status: 404, description: 'Workflow not found' })
   remove(@Param('id') id: string) {
     return this.workflowsService.remove(id);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('workflows:update')
+  @Post(':id/detach')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Detach workflow from assigned project without deleting workflow data' })
+  @ApiParam({ name: 'id', description: 'Workflow UUID' })
+  @ApiResponse({ status: 200, description: 'Workflow detached from project' })
+  detachFromProject(@Param('id') id: string) {
+    return this.workflowsService.detachFromProject(id);
   }
 
   @UseGuards(JwtAuthGuard)

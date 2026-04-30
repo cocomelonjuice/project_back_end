@@ -1339,11 +1339,19 @@ export class ChatService {
 
     if (decision.intent === 'create_workflow') {
       const name = decision.payload?.name?.trim();
+      const projectId = decision.payload?.projectId?.trim();
       if (!name) return decision.reply;
+      if (!projectId) {
+        return this.actionSuccess(
+          locale,
+          'Workflow creation now requires a projectId.',
+          'Tạo workflow hiện yêu cầu projectId.',
+        );
+      }
       const created = await this.workflowsService.create({
         name,
         description: decision.payload?.description,
-        projectId: decision.payload?.projectId,
+        projectId,
         isActive: decision.payload?.isActive,
       });
       return this.actionSuccess(

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { Issue } from './entities/issue.entity';
@@ -14,6 +14,7 @@ import { QueryIssuesDto } from './dto/query-issues.dto';
 import { AssignIssueDto } from './dto/assign-issue.dto';
 import { TransitionIssueDto } from './dto/transition-issue.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { Workflow } from '../workflows/entities/workflow.entity';
 
 @Injectable()
 export class IssuesService {
@@ -32,6 +33,8 @@ export class IssuesService {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(Sprint)
     private readonly sprintsRepository: Repository<Sprint>,
+    @InjectRepository(Workflow)
+    private readonly workflowsRepository: Repository<Workflow>,
     @Inject(forwardRef(() => NotificationsService))
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -81,6 +84,104 @@ export class IssuesService {
     return entity;
   }
 
+  private async validateSprintUsage(projectId: string, sprint: Sprint | null) {
+    if (!sprint) return;
+
+    const sprintWithBoard = await this.sprintsRepository.findOne({
+      where: { id: sprint.id },
+      relations: ['board', 'board.project'],
+    });
+
+    if (!sprintWithBoard?.board?.project?.id) {
+      throw new BadRequestException('Selected sprint is invalid');
+    }
+
+    if (sprintWithBoard.board.project.id !== projectId) {
+      throw new BadRequestException('Sprint does not belong to this project');
+    }
+
+    if ((sprintWithBoard.board.type || '').toLowerCase() === 'kanban') {
+      throw new BadRequestException('Cannot assign sprint for issues in Kanban board');
+    }
+  }
+
+  private async getEffectiveWorkflow(projectId: string) {
+    const activeProjectWorkflows = await this.workflowsRepository.find({
+      where: {
+        isActive: true,
+        project: { id: projectId } as any,
+      },
+      relations: ['transitions', 'transitions.fromStatus', 'transitions.toStatus'],
+    });
+
+    if (activeProjectWorkflows.length > 1) {
+      throw new BadRequestException(
+        'Project has multiple active workflows. Please keep only one active workflow.',
+      );
+    }
+
+    return activeProjectWorkflows[0] || null;
+  }
+
+  private async validateWorkflowTransition(
+    issue: Issue,
+    nextStatusId: string,
+  ) {
+    if (!issue.status?.id || issue.status.id === nextStatusId) {
+      return;
+    }
+
+    const workflow = await this.getEffectiveWorkflow(issue.project.id);
+    if (!workflow) {
+      throw new BadRequestException(
+        'Project has no active workflow assigned. Please assign a workflow before changing issue status.',
+      );
+    }
+
+    const currentStatus = issue.status;
+    const targetStatus = await this.statusesRepository.findOne({
+      where: { id: nextStatusId } as any,
+    });
+    if (!targetStatus) {
+      throw new NotFoundException(`Status ${nextStatusId} not found`);
+    }
+
+    const currentCategory = (currentStatus.category || '').toLowerCase();
+    const targetCategory = (targetStatus.category || '').toLowerCase();
+
+    if (currentCategory === targetCategory) {
+      // Allow switching between statuses within same category.
+      return;
+    }
+
+    const transitions = workflow.transitions || [];
+    if (transitions.length === 0) {
+      throw new BadRequestException(
+        'No transitions are configured for the active workflow',
+      );
+    }
+
+    // Transition rules are interpreted at category level.
+    // Auto-backward is enabled: A->B also permits B->A.
+    const isAllowed = transitions.some((transition) => {
+      const fromCategory = (transition.fromStatus?.category || '').toLowerCase();
+      const toCategory = (transition.toStatus?.category || '').toLowerCase();
+      const directMatch =
+        fromCategory === currentCategory && toCategory === targetCategory;
+      const backwardMatch =
+        fromCategory === targetCategory && toCategory === currentCategory;
+      return directMatch || backwardMatch;
+    });
+
+    if (!isAllowed) {
+      const sourceName = issue.status?.name || 'Unknown';
+      const targetName = targetStatus?.name || 'Unknown';
+      throw new BadRequestException(
+        `Invalid workflow transition: "${sourceName}" -> "${targetName}"`,
+      );
+    }
+  }
+
   async create(projectId: string, dto: CreateIssueDto) {
     const project = await this.getProject(projectId);
     const [type, priority, status, assignee, reporter, sprint] = await Promise.all([
@@ -115,6 +216,8 @@ export class IssuesService {
         'Sprint',
       ),
     ]);
+
+    await this.validateSprintUsage(project.id, sprint as Sprint | null);
 
     const issue = this.issuesRepository.create({
       summary: dto.summary,
@@ -221,6 +324,7 @@ export class IssuesService {
     }
 
     if (dto.statusId !== undefined) {
+      await this.validateWorkflowTransition(issue, dto.statusId);
       issue.status = await this.resolveOptionalRelation(
         this.statusesRepository,
         dto.statusId,
@@ -245,11 +349,13 @@ export class IssuesService {
     }
 
     if (dto.sprintId !== undefined) {
-      issue.sprint = await this.resolveOptionalRelation(
+      const resolvedSprint = await this.resolveOptionalRelation(
         this.sprintsRepository,
         dto.sprintId,
         'Sprint',
       );
+      await this.validateSprintUsage(issue.project.id, resolvedSprint as Sprint | null);
+      issue.sprint = resolvedSprint;
     }
 
     const savedIssue = await this.issuesRepository.save(issue);
@@ -318,6 +424,7 @@ export class IssuesService {
   async transition(id: string, dto: TransitionIssueDto) {
     const issue = await this.getIssue(id);
     const oldStatus = issue.status;
+    await this.validateWorkflowTransition(issue, dto.statusId);
     issue.status = await this.resolveOptionalRelation(
       this.statusesRepository,
       dto.statusId,

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsBoolean, IsUUID, Length } from 'class-validator';
+import { IsString, IsBoolean, IsUUID, Length, IsOptional } from 'class-validator';
 
 export class CreateWorkflowDto {
   @IsString()
@@ -9,9 +9,8 @@ export class CreateWorkflowDto {
   @IsString()
   description?: string;
 
-  @IsOptional()
   @IsUUID()
-  projectId?: string;
+  projectId: string;
 
   @IsOptional()
   @IsBoolean()

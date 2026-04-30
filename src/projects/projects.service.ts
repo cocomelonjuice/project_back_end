@@ -18,16 +18,44 @@ export class ProjectsService {
     private readonly rolesRepository: Repository<Role>,
   ) {}
 
+  private async generateProjectKey(length = 7): Promise<string> {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    while (true) {
+      let key = '';
+      for (let i = 0; i < length; i += 1) {
+        key += chars[Math.floor(Math.random() * chars.length)];
+      }
+      const existing = await this.projectsRepository.findOne({ where: { key } });
+      if (!existing) {
+        return key;
+      }
+    }
+  }
+
   async create(dto: CreateProjectDto): Promise<Project> {
+    const generatedKey = await this.generateProjectKey(7);
     const project = this.projectsRepository.create({
       ...dto,
-      key: dto.key.toUpperCase(),
+      key: dto.key?.toUpperCase() || generatedKey,
     });
     return this.projectsRepository.save(project);
   }
 
   findAll(): Promise<Project[]> {
     return this.projectsRepository.find();
+  }
+
+  async findManagedProjects(userId: string, isAdmin: boolean): Promise<Project[]> {
+    if (isAdmin) {
+      return this.findAll();
+    }
+
+    return this.projectsRepository
+      .createQueryBuilder('project')
+      .innerJoin('project.roles', 'role')
+      .innerJoin('role.users', 'user', 'user.id = :userId', { userId })
+      .orderBy('project.updatedAt', 'DESC')
+      .getMany();
   }
 
   async findOne(id: string): Promise<Project> {
@@ -40,10 +68,8 @@ export class ProjectsService {
 
   async update(id: string, dto: UpdateProjectDto): Promise<Project> {
     const project = await this.findOne(id);
-    Object.assign(project, dto);
-    if (dto.key) {
-      project.key = dto.key.toUpperCase();
-    }
+    const { key: _ignoredKey, ...rest } = dto;
+    Object.assign(project, rest);
     return this.projectsRepository.save(project);
   }
 

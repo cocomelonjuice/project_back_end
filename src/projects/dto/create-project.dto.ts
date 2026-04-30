@@ -6,9 +6,10 @@ import {
 } from 'class-validator';
 
 export class CreateProjectDto {
+  @IsOptional()
   @IsString()
   @Length(2, 20)
-  key: string;
+  key?: string;
 
   @IsString()
   @Length(3, 100)
