@@ -40,9 +40,16 @@ import { ThrottlerModule } from '@nestjs/throttler';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
+        const nodeEnv = configService.get<string>('NODE_ENV', 'development');
+        const isProduction = nodeEnv === 'production';
         const host = configService.get<string>('DB_HOST', 'localhost');
         const port = configService.get<number>('DB_PORT', 5431); // Changed default to 5431
         const username = configService.get<string>('DB_USERNAME', 'postgres');
+        const dbSslRaw = configService.get<string>('DB_SSL');
+        const enableSsl =
+          typeof dbSslRaw === 'string'
+            ? ['1', 'true', 'yes', 'on'].includes(dbSslRaw.toLowerCase())
+            : isProduction;
         // Trim whitespace and ensure it's a string
         const password = (
           configService.get<string>('DB_PASSWORD') || 'password'
@@ -62,7 +69,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: true, // Set to false in production, use migrations instead
           logging: true, // Enable SQL query logging for development
-          ssl: false, // Disable SSL for local development
+          // Neon/managed Postgres typically requires TLS in production, while local DB commonly runs without SSL.
+          // DB_SSL can explicitly override this behavior for troubleshooting environment-specific connection issues.
+          // Neon/Postgres managed trên production thường bắt buộc TLS, còn DB local thường không cần SSL.
+          // Có thể dùng DB_SSL để override thủ công khi cần debug lỗi kết nối theo từng môi trường.
+          ssl: enableSsl ? { rejectUnauthorized: false } : false,
           timezone: 'UTC', // Ensure all timestamps are stored and retrieved in UTC
           extra: {
             trustServerCertificate: true,
