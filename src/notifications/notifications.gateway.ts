@@ -8,10 +8,17 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+const frontendUrl = process.env.FRONTEND_URL?.trim();
+const socketAllowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  ...(frontendUrl ? [frontendUrl] : []),
+];
+
 @WebSocketGateway({
   namespace: '/notifications',
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: socketAllowedOrigins,
     credentials: true,
   },
 })
