@@ -222,6 +222,7 @@ export class IssuesService {
     const issue = this.issuesRepository.create({
       summary: dto.summary,
       description: dto.description,
+      dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
       project,
       type,
       priority,
@@ -305,6 +306,10 @@ export class IssuesService {
 
     if (dto.description !== undefined) {
       issue.description = dto.description;
+    }
+
+    if (dto.dueDate !== undefined) {
+      issue.dueDate = dto.dueDate ? new Date(dto.dueDate) : null;
     }
 
     if (dto.typeId !== undefined) {

@@ -31,6 +31,9 @@ export class Issue {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  @Column({ name: 'due_date', type: 'timestamptz', nullable: true })
+  dueDate?: Date | null;
+
   @ManyToOne(() => Project, (project) => project.issues, {
     nullable: false,
     onDelete: 'CASCADE',

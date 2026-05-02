@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsOptional,
   IsString,
   IsUUID,
@@ -13,6 +14,10 @@ export class CreateIssueDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dueDate?: string | null;
 
   @IsOptional()
   @IsUUID()
