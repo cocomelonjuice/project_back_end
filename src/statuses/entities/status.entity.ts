@@ -15,4 +15,3 @@ export class Status {
   @OneToMany(() => Issue, (issue) => issue.status)
   issues: Issue[];
 }
-

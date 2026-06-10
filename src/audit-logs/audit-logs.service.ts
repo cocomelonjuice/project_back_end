@@ -66,4 +66,3 @@ export class AuditLogsService {
     return auditLog;
   }
 }
-

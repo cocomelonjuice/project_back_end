@@ -1,9 +1,4 @@
-import {
-  Column,
-  Entity,
-  ManyToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Issue } from '../../issues/entities/issue.entity';
 
 @Entity('labels')
@@ -23,5 +18,3 @@ export class Label {
   @ManyToMany(() => Issue, (issue) => issue.labels)
   issues: Issue[];
 }
-
-

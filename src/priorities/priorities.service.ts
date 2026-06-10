@@ -42,8 +42,3 @@ export class PrioritiesService {
     await this.prioritiesRepository.remove(priority);
   }
 }
-
-
-
-
-

@@ -12,5 +12,3 @@ import { User } from '../users/entities/user.entity';
   exports: [AuditLogsService],
 })
 export class AuditLogsModule {}
-
-

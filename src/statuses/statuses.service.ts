@@ -40,8 +40,3 @@ export class StatusesService {
     await this.statusesRepository.remove(status);
   }
 }
-
-
-
-
-

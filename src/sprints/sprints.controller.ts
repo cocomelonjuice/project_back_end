@@ -8,7 +8,13 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { SprintsService } from './sprints.service';
 import { CreateSprintDto } from './dto/create-sprint.dto';
 import { UpdateSprintDto } from './dto/update-sprint.dto';
@@ -88,7 +94,10 @@ export class SprintsController {
   @ApiParam({ name: 'id', description: 'Sprint UUID' })
   @ApiResponse({ status: 200, description: 'Sprint successfully started' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 400, description: 'Sprint cannot be started (already active or closed)' })
+  @ApiResponse({
+    status: 400,
+    description: 'Sprint cannot be started (already active or closed)',
+  })
   @ApiResponse({ status: 404, description: 'Sprint not found' })
   start(@Param('id') id: string) {
     return this.sprintsService.start(id);
@@ -101,7 +110,10 @@ export class SprintsController {
   @ApiParam({ name: 'id', description: 'Sprint UUID' })
   @ApiResponse({ status: 200, description: 'Sprint successfully completed' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 400, description: 'Only active sprints can be completed' })
+  @ApiResponse({
+    status: 400,
+    description: 'Only active sprints can be completed',
+  })
   @ApiResponse({ status: 404, description: 'Sprint not found' })
   complete(@Param('id') id: string) {
     return this.sprintsService.complete(id);
@@ -119,4 +131,3 @@ export class SprintsController {
     return this.sprintsService.findIssuesBySprint(sprintId);
   }
 }
-

@@ -1,9 +1,4 @@
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Length,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateProjectDto {
   @IsOptional()
@@ -24,8 +19,3 @@ export class CreateProjectDto {
   @IsNotEmpty()
   description?: string;
 }
-
-
-
-
-

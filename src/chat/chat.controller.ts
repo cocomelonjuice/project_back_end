@@ -71,7 +71,9 @@ export class ChatController {
   }
 
   @Post('conversations/delete-many')
-  @ApiOperation({ summary: 'Delete multiple conversations owned by the current user' })
+  @ApiOperation({
+    summary: 'Delete multiple conversations owned by the current user',
+  })
   @ApiResponse({ status: 200, description: 'Returns count of deleted rows' })
   deleteMany(@Req() req: any, @Body() dto: DeleteConversationsDto) {
     return this.chatService.deleteConversations(req.user.id, dto.ids);
@@ -82,7 +84,10 @@ export class ChatController {
   @HttpCode(204)
   @ApiOperation({ summary: 'Remove one conversation (POST alias)' })
   @ApiResponse({ status: 204, description: 'Conversation removed' })
-  removeConversationPost(@Req() req: any, @Param('id', ParseUUIDPipe) id: string) {
+  removeConversationPost(
+    @Req() req: any,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.chatService.deleteConversation(req.user.id, id);
   }
 
@@ -96,10 +101,7 @@ export class ChatController {
 
   @Get('conversations/:id/messages')
   @ApiOperation({ summary: 'List messages in a conversation' })
-  getMessages(
-    @Req() req: any,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  getMessages(@Req() req: any, @Param('id', ParseUUIDPipe) id: string) {
     return this.chatService.getMessages(req.user.id, id);
   }
 

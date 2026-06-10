@@ -8,7 +8,13 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { IssueTypesService } from './issue-types.service';
 import { CreateIssueTypeDto } from './dto/create-issue-type.dto';
 import { UpdateIssueTypeDto } from './dto/update-issue-type.dto';
@@ -76,7 +82,3 @@ export class IssueTypesController {
     return this.issueTypesService.remove(id);
   }
 }
-
-
-
-

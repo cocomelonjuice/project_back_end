@@ -9,7 +9,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -33,11 +39,7 @@ export class CommentsController {
     @Body() createCommentDto: CreateCommentDto,
     @Req() req: any,
   ) {
-    return this.commentsService.create(
-      issueId,
-      req.user.id,
-      createCommentDto,
-    );
+    return this.commentsService.create(issueId, req.user.id, createCommentDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -88,4 +90,3 @@ export class CommentsController {
     return this.commentsService.remove(id);
   }
 }
-

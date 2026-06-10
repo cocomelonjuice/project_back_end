@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Attachment } from './entities/attachment.entity';
@@ -33,7 +38,12 @@ export class AttachmentsService {
   async create(
     issueId: string,
     uploadedById: string,
-    file: { originalname: string; mimetype: string; size: number; buffer: Buffer },
+    file: {
+      originalname: string;
+      mimetype: string;
+      size: number;
+      buffer: Buffer;
+    },
   ): Promise<Attachment> {
     const issue = await this.issuesRepository.findOne({
       where: { id: issueId },
@@ -56,7 +66,11 @@ export class AttachmentsService {
     const fileExt = path.extname(file.originalname);
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
     const objectKey = `attachments/${issueId}/${fileName}`;
-    await this.spacesService.uploadObject(objectKey, file.buffer, file.mimetype);
+    await this.spacesService.uploadObject(
+      objectKey,
+      file.buffer,
+      file.mimetype,
+    );
 
     const attachment = this.attachmentsRepository.create({
       filename: fileName,
@@ -75,14 +89,18 @@ export class AttachmentsService {
     // Create notifications for assignee and reporter (but not the uploader)
     try {
       const usersToNotify: User[] = [];
-      
+
       // Notify assignee if exists and is not the uploader
       if (issue.assignee && issue.assignee.id !== uploadedById) {
         usersToNotify.push(issue.assignee);
       }
-      
+
       // Notify reporter if exists, is not the uploader, and is not already in the list
-      if (issue.reporter && issue.reporter.id !== uploadedById && issue.reporter.id !== issue.assignee?.id) {
+      if (
+        issue.reporter &&
+        issue.reporter.id !== uploadedById &&
+        issue.reporter.id !== issue.assignee?.id
+      ) {
         usersToNotify.push(issue.reporter);
       }
 
@@ -132,7 +150,9 @@ export class AttachmentsService {
     return attachment;
   }
 
-  async getFileBuffer(id: string): Promise<{ buffer: Buffer; attachment: Attachment }> {
+  async getFileBuffer(
+    id: string,
+  ): Promise<{ buffer: Buffer; attachment: Attachment }> {
     const attachment = await this.findOne(id);
 
     // Legacy local files remain downloadable
@@ -188,4 +208,3 @@ export class AttachmentsService {
     await this.attachmentsRepository.remove(attachment);
   }
 }
-

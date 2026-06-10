@@ -17,7 +17,9 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const expiresConfig = configService.get<string | number>('JWT_EXPIRES_IN');
+        const expiresConfig = configService.get<string | number>(
+          'JWT_EXPIRES_IN',
+        );
         const expiresIn =
           typeof expiresConfig === 'number'
             ? expiresConfig
@@ -39,4 +41,3 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}
-

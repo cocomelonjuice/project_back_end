@@ -13,8 +13,3 @@ export class QueryIssuesDto {
   @IsUUID()
   priorityId?: string;
 }
-
-
-
-
-

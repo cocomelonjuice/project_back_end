@@ -12,5 +12,3 @@ import { Issue } from '../issues/entities/issue.entity';
   exports: [LabelsService],
 })
 export class LabelsModule {}
-
-

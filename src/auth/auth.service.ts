@@ -152,11 +152,7 @@ export class AuthService {
     const tokenHash = this.hashResetToken(rawToken);
     const expires = new Date(Date.now() + this.getPasswordResetTtlMs());
 
-    await this.usersService.setPasswordResetFields(
-      user.id,
-      tokenHash,
-      expires,
-    );
+    await this.usersService.setPasswordResetFields(user.id, tokenHash, expires);
 
     const base = this.mailService.getFrontendBaseUrl();
     const link = `${base}/reset-password?token=${rawToken}`;

@@ -7,5 +7,3 @@ export class CreateAttachmentDto {
   size: number;
   filePath: string;
 }
-
-

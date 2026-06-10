@@ -38,5 +38,3 @@ export class Role {
   })
   projects: Project[];
 }
-
-

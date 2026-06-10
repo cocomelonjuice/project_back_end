@@ -90,7 +90,9 @@ export class RolesService {
     // Check if user already has a role in this project - if so, remove it first
     const projectRoles = await this.rolesRepository
       .createQueryBuilder('role')
-      .innerJoin('role.projects', 'project', 'project.id = :projectId', { projectId })
+      .innerJoin('role.projects', 'project', 'project.id = :projectId', {
+        projectId,
+      })
       .getMany();
 
     const projectRoleIds = projectRoles.map((r) => r.id);
@@ -103,8 +105,10 @@ export class RolesService {
 
     if (userWithRoles?.roles) {
       // Find roles that belong to this project
-      const userRolesInProject = userWithRoles.roles.filter((r) => projectRoleIds.includes(r.id));
-      
+      const userRolesInProject = userWithRoles.roles.filter((r) =>
+        projectRoleIds.includes(r.id),
+      );
+
       // Remove old roles from this project (except the new one we're assigning)
       for (const oldRole of userRolesInProject) {
         if (oldRole.id !== roleId) {
@@ -115,7 +119,10 @@ export class RolesService {
               .of(userId)
               .remove(oldRole.id);
           } catch (error) {
-            console.warn(`Failed to remove old role ${oldRole.id} from user:`, error);
+            console.warn(
+              `Failed to remove old role ${oldRole.id} from user:`,
+              error,
+            );
           }
         }
       }
@@ -132,7 +139,10 @@ export class RolesService {
           .add(roleId);
       }
     } catch (error) {
-      console.error('Error assigning role to user using relation manager:', error);
+      console.error(
+        'Error assigning role to user using relation manager:',
+        error,
+      );
       // Fallback: try loading and saving
       try {
         const userWithRolesFallback = await this.usersRepository.findOne({
@@ -141,7 +151,9 @@ export class RolesService {
         });
 
         if (userWithRolesFallback) {
-          const hasRole = userWithRolesFallback.roles?.some((r) => r.id === roleId);
+          const hasRole = userWithRolesFallback.roles?.some(
+            (r) => r.id === roleId,
+          );
           if (!hasRole) {
             if (!userWithRolesFallback.roles) {
               userWithRolesFallback.roles = [];
@@ -154,7 +166,9 @@ export class RolesService {
         }
       } catch (fallbackError) {
         console.error('Error in fallback method:', fallbackError);
-        throw new Error(`Failed to assign role to user: ${error.message || error}`);
+        throw new Error(
+          `Failed to assign role to user: ${error.message || error}`,
+        );
       }
     }
 
@@ -166,7 +180,10 @@ export class RolesService {
         .of(projectId)
         .add(roleId);
     } catch (error) {
-      console.error('Error assigning role to project using relation manager:', error);
+      console.error(
+        'Error assigning role to project using relation manager:',
+        error,
+      );
       // Fallback: try loading and saving
       try {
         const projectWithRoles = await this.projectsRepository.findOne({
@@ -189,7 +206,9 @@ export class RolesService {
       } catch (fallbackError) {
         console.error('Error in fallback method for project:', fallbackError);
         // Don't throw - user role assignment succeeded, project role is optional
-        console.warn('Failed to assign role to project, but user role was assigned');
+        console.warn(
+          'Failed to assign role to project, but user role was assigned',
+        );
       }
     }
 
@@ -239,7 +258,10 @@ export class RolesService {
         .of(userId)
         .remove(roleId);
     } catch (error) {
-      console.error('Error removing role from user using relation manager:', error);
+      console.error(
+        'Error removing role from user using relation manager:',
+        error,
+      );
       // Fallback: try loading and saving
       try {
         const userWithRoles = await this.usersRepository.findOne({
@@ -248,12 +270,16 @@ export class RolesService {
         });
 
         if (userWithRoles && userWithRoles.roles) {
-          userWithRoles.roles = userWithRoles.roles.filter((r) => r.id !== roleId);
+          userWithRoles.roles = userWithRoles.roles.filter(
+            (r) => r.id !== roleId,
+          );
           await this.usersRepository.save(userWithRoles);
         }
       } catch (fallbackError) {
         console.error('Error in fallback method:', fallbackError);
-        throw new Error(`Failed to remove role from user: ${error.message || error}`);
+        throw new Error(
+          `Failed to remove role from user: ${error.message || error}`,
+        );
       }
     }
 
@@ -262,7 +288,9 @@ export class RolesService {
     const otherUsersWithRole = await this.usersRepository
       .createQueryBuilder('user')
       .innerJoin('user.roles', 'role', 'role.id = :roleId', { roleId })
-      .innerJoin('role.projects', 'project', 'project.id = :projectId', { projectId })
+      .innerJoin('role.projects', 'project', 'project.id = :projectId', {
+        projectId,
+      })
       .where('user.id != :userId', { userId })
       .getCount();
 
@@ -277,10 +305,10 @@ export class RolesService {
       } catch (error) {
         console.error('Error removing role from project:', error);
         // Don't throw - user role removal succeeded, project role removal is optional
-        console.warn('Failed to remove role from project, but user role was removed');
+        console.warn(
+          'Failed to remove role from project, but user role was removed',
+        );
       }
     }
   }
 }
-
-

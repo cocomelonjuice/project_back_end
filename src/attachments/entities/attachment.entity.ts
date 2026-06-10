@@ -54,5 +54,3 @@ export class Attachment {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
-
-

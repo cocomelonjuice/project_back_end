@@ -27,10 +27,18 @@ export class Sprint {
   @Column({ type: 'text', nullable: true })
   goal?: string;
 
-  @Column({ name: 'start_date', type: 'timestamp with time zone', nullable: true })
+  @Column({
+    name: 'start_date',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
   startDate?: Date;
 
-  @Column({ name: 'end_date', type: 'timestamp with time zone', nullable: true })
+  @Column({
+    name: 'end_date',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
   endDate?: Date;
 
   @Column({ length: 20, default: 'planned' })
@@ -39,5 +47,3 @@ export class Sprint {
   @OneToMany(() => Issue, (issue) => issue.sprint)
   issues: Issue[];
 }
-
-

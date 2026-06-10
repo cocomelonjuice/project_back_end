@@ -20,5 +20,3 @@ export class CreateSprintDto {
   @Length(3, 20)
   status?: string; // 'planned', 'active', 'closed'
 }
-
-

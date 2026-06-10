@@ -8,7 +8,13 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -93,7 +99,10 @@ export class RolesController {
   @ApiParam({ name: 'projectId', description: 'Project UUID' })
   @ApiParam({ name: 'roleId', description: 'Role UUID' })
   @ApiParam({ name: 'userId', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'Role successfully assigned to user in project' })
+  @ApiResponse({
+    status: 200,
+    description: 'Role successfully assigned to user in project',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Project, role, or user not found' })
@@ -102,7 +111,11 @@ export class RolesController {
     @Param('roleId') roleId: string,
     @Param('userId') userId: string,
   ) {
-    return this.rolesService.assignRoleToUserInProject(projectId, roleId, userId);
+    return this.rolesService.assignRoleToUserInProject(
+      projectId,
+      roleId,
+      userId,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -113,7 +126,10 @@ export class RolesController {
   @ApiParam({ name: 'projectId', description: 'Project UUID' })
   @ApiParam({ name: 'roleId', description: 'Role UUID' })
   @ApiParam({ name: 'userId', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'Role successfully removed from user in project' })
+  @ApiResponse({
+    status: 200,
+    description: 'Role successfully removed from user in project',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
   @ApiResponse({ status: 404, description: 'Project, role, or user not found' })
@@ -122,7 +138,10 @@ export class RolesController {
     @Param('roleId') roleId: string,
     @Param('userId') userId: string,
   ) {
-    return this.rolesService.removeRoleFromUserInProject(projectId, roleId, userId);
+    return this.rolesService.removeRoleFromUserInProject(
+      projectId,
+      roleId,
+      userId,
+    );
   }
 }
-

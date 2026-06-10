@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Board } from './entities/board.entity';
@@ -15,7 +19,10 @@ export class BoardsService {
     private projectsRepository: Repository<Project>,
   ) {}
 
-  async create(projectId: string, createBoardDto: CreateBoardDto): Promise<Board> {
+  async create(
+    projectId: string,
+    createBoardDto: CreateBoardDto,
+  ): Promise<Board> {
     const project = await this.projectsRepository.findOne({
       where: { id: projectId },
     });
@@ -51,7 +58,10 @@ export class BoardsService {
       }
       // For other errors (like invalid UUID format in database query), return empty array
       // This allows the frontend to handle "no boards" gracefully
-      console.warn(`Error fetching boards for project ${projectId}:`, error.message);
+      console.warn(
+        `Error fetching boards for project ${projectId}:`,
+        error.message,
+      );
       return [];
     }
   }
@@ -82,5 +92,3 @@ export class BoardsService {
     await this.boardsRepository.remove(board);
   }
 }
-
-

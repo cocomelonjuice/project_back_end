@@ -15,4 +15,3 @@ export class Priority {
   @OneToMany(() => Issue, (issue) => issue.priority)
   issues: Issue[];
 }
-

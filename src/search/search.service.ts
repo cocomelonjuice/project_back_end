@@ -26,19 +26,25 @@ export class SearchService {
     const fromSingle = typeof singleValue === 'string' ? [singleValue] : [];
     return [...fromMulti, ...fromSingle]
       .map((value) => value.trim())
-      .filter((value, index, arr) => value.length > 0 && arr.indexOf(value) === index);
+      .filter(
+        (value, index, arr) => value.length > 0 && arr.indexOf(value) === index,
+      );
   }
 
   private normalizeUpper(values: string[]): string[] {
     return values
       .map((value) => value.trim().toUpperCase())
-      .filter((value, index, arr) => value.length > 0 && arr.indexOf(value) === index);
+      .filter(
+        (value, index, arr) => value.length > 0 && arr.indexOf(value) === index,
+      );
   }
 
   private normalizeLower(values: string[]): string[] {
     return values
       .map((value) => value.trim().toLowerCase())
-      .filter((value, index, arr) => value.length > 0 && arr.indexOf(value) === index);
+      .filter(
+        (value, index, arr) => value.length > 0 && arr.indexOf(value) === index,
+      );
   }
 
   async search(dto: SearchQueryDto): Promise<SearchResult> {
@@ -63,8 +69,14 @@ export class SearchService {
     const searchTerm = `%${trimmedQuery}%`;
     const normalizedLimit = Math.max(1, Math.min(limit || 5, 20));
     const projectKeys = this.normalizeFilterValues(projectKeysRaw, projectKey);
-    const projectTypes = this.normalizeFilterValues(projectTypesRaw, projectType);
-    const issueStatusIds = this.normalizeFilterValues(issueStatusIdsRaw, issueStatus);
+    const projectTypes = this.normalizeFilterValues(
+      projectTypesRaw,
+      projectType,
+    );
+    const issueStatusIds = this.normalizeFilterValues(
+      issueStatusIdsRaw,
+      issueStatus,
+    );
     const issuePriorityIds = this.normalizeFilterValues(
       issuePriorityIdsRaw,
       issuePriority,
@@ -79,7 +91,9 @@ export class SearchService {
         const parts = key.split('-');
         return parts.length > 1 ? parts[parts.length - 1] : '';
       })
-      .filter((value, index, arr) => value.length > 0 && arr.indexOf(value) === index);
+      .filter(
+        (value, index, arr) => value.length > 0 && arr.indexOf(value) === index,
+      );
     const hasProjectFilters =
       normalizedProjectKeys.length > 0 || normalizedProjectTypes.length > 0;
     const hasIssueFilters =
@@ -228,9 +242,9 @@ export class SearchService {
         .getMany();
     }
 
-    results.total = results.projects.length + results.issues.length + results.users.length;
+    results.total =
+      results.projects.length + results.issues.length + results.users.length;
 
     return results;
   }
 }
-

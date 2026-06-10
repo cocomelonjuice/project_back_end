@@ -23,5 +23,3 @@ export class CreateAuditLogDto {
   @IsString()
   description?: string;
 }
-
-

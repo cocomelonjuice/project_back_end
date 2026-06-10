@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
@@ -54,14 +59,18 @@ export class CommentsService {
     // Create notifications for assignee and reporter (but not the comment author)
     try {
       const usersToNotify: User[] = [];
-      
+
       // Notify assignee if exists and is not the comment author
       if (issue.assignee && issue.assignee.id !== authorId) {
         usersToNotify.push(issue.assignee);
       }
-      
+
       // Notify reporter if exists, is not the comment author, and is not already in the list
-      if (issue.reporter && issue.reporter.id !== authorId && issue.reporter.id !== issue.assignee?.id) {
+      if (
+        issue.reporter &&
+        issue.reporter.id !== authorId &&
+        issue.reporter.id !== issue.assignee?.id
+      ) {
         usersToNotify.push(issue.reporter);
       }
 
@@ -111,7 +120,10 @@ export class CommentsService {
     return comment;
   }
 
-  async update(id: string, updateCommentDto: UpdateCommentDto): Promise<Comment> {
+  async update(
+    id: string,
+    updateCommentDto: UpdateCommentDto,
+  ): Promise<Comment> {
     const comment = await this.findOne(id);
 
     Object.assign(comment, updateCommentDto);
@@ -124,5 +136,3 @@ export class CommentsService {
     await this.commentsRepository.remove(comment);
   }
 }
-
-

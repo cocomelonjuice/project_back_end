@@ -101,5 +101,3 @@ export class LabelsService {
     return await this.issuesRepository.save(issue);
   }
 }
-
-

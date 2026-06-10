@@ -1,4 +1,10 @@
-import { IsString, IsBoolean, IsUUID, Length, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsBoolean,
+  IsUUID,
+  Length,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateWorkflowDto {
   @IsString()
@@ -16,5 +22,3 @@ export class CreateWorkflowDto {
   @IsBoolean()
   isActive?: boolean;
 }
-
-

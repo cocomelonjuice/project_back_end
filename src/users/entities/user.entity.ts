@@ -38,7 +38,11 @@ export class User {
   })
   passwordResetTokenHash: string | null;
 
-  @Column({ name: 'password_reset_expires', type: 'timestamptz', nullable: true })
+  @Column({
+    name: 'password_reset_expires',
+    type: 'timestamptz',
+    nullable: true,
+  })
   passwordResetExpires: Date | null;
 
   @Column({ name: 'is_active', default: true })
@@ -68,4 +72,3 @@ export class User {
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 }
-

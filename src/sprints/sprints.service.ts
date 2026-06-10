@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Sprint } from './entities/sprint.entity';
@@ -18,7 +22,10 @@ export class SprintsService {
     private issuesRepository: Repository<Issue>,
   ) {}
 
-  async create(boardId: string, createSprintDto: CreateSprintDto): Promise<Sprint> {
+  async create(
+    boardId: string,
+    createSprintDto: CreateSprintDto,
+  ): Promise<Sprint> {
     const board = await this.boardsRepository.findOne({
       where: { id: boardId },
     });
@@ -28,7 +35,9 @@ export class SprintsService {
     }
 
     if ((board.type || '').toLowerCase() !== 'scrum') {
-      throw new BadRequestException('Sprints are only available for Scrum boards');
+      throw new BadRequestException(
+        'Sprints are only available for Scrum boards',
+      );
     }
 
     const sprint = this.sprintsRepository.create({
@@ -62,7 +71,10 @@ export class SprintsService {
       }
       // For other errors (like invalid UUID format in database query), return empty array
       // This allows the frontend to handle "no sprints" gracefully
-      console.warn(`Error fetching sprints for board ${boardId}:`, error.message);
+      console.warn(
+        `Error fetching sprints for board ${boardId}:`,
+        error.message,
+      );
       return [];
     }
   }
@@ -118,7 +130,9 @@ export class SprintsService {
     const sprint = await this.findOne(id);
 
     if ((sprint.board?.type || '').toLowerCase() !== 'scrum') {
-      throw new BadRequestException('Only Scrum board sprints can be completed');
+      throw new BadRequestException(
+        'Only Scrum board sprints can be completed',
+      );
     }
 
     if (sprint.status !== 'active') {
@@ -136,9 +150,14 @@ export class SprintsService {
 
     return await this.issuesRepository.find({
       where: { sprint: { id: sprintId } },
-      relations: ['project', 'type', 'status', 'priority', 'assignee', 'reporter'],
+      relations: [
+        'project',
+        'type',
+        'status',
+        'priority',
+        'assignee',
+        'reporter',
+      ],
     });
   }
 }
-
-

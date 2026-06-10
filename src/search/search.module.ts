@@ -13,7 +13,3 @@ import { User } from '../users/entities/user.entity';
   exports: [SearchService],
 })
 export class SearchModule {}
-
-
-
-

@@ -40,8 +40,3 @@ export class IssueTypesService {
     await this.issueTypesRepository.remove(type);
   }
 }
-
-
-
-
-

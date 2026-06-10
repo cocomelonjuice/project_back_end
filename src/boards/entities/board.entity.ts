@@ -30,5 +30,3 @@ export class Board {
   @OneToMany(() => Sprint, (sprint) => sprint.board)
   sprints: Sprint[];
 }
-
-
