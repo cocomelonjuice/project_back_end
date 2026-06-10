@@ -13,8 +13,3 @@ import { Role } from '../roles/entities/role.entity';
   exports: [ProjectsService],
 })
 export class ProjectsModule {}
-
-
-
-
-

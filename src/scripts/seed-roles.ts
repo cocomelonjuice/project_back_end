@@ -152,11 +152,15 @@ export async function seedRoles(dataSource: DataSource) {
   }
 
   if (targetUser) {
-    const adminRole = await roleRepository.findOne({ where: { name: 'admin' } });
+    const adminRole = await roleRepository.findOne({
+      where: { name: 'admin' },
+    });
     if (adminRole) {
       const hasAdminRole = targetUser.roles?.some((r) => r.name === 'admin');
       if (!hasAdminRole) {
-        console.log(`👤 Assigning admin role to user: ${targetUser.username}...`);
+        console.log(
+          `👤 Assigning admin role to user: ${targetUser.username}...`,
+        );
         if (!targetUser.roles) {
           targetUser.roles = [];
         }
@@ -168,7 +172,9 @@ export async function seedRoles(dataSource: DataSource) {
       }
     }
   } else {
-    console.log('ℹ️  No users found. Admin role will be assigned to the first registered user.');
+    console.log(
+      'ℹ️  No users found. Admin role will be assigned to the first registered user.',
+    );
   }
 
   console.log('✨ Role seeding completed!');
@@ -177,6 +183,7 @@ export async function seedRoles(dataSource: DataSource) {
 // If running directly (not imported)
 if (require.main === module) {
   // This would need to be called from your app initialization
-  console.log('Please import and call seedRoles() from your app initialization');
+  console.log(
+    'Please import and call seedRoles() from your app initialization',
+  );
 }
-

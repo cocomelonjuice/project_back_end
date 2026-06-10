@@ -50,7 +50,8 @@ export class ProjectsController {
   @ApiQuery({
     name: 'scope',
     required: false,
-    description: 'Use "managed" to return only projects managed by current user',
+    description:
+      'Use "managed" to return only projects managed by current user',
   })
   @ApiResponse({ status: 200, description: 'Returns list of all projects' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -109,7 +110,10 @@ export class ProjectsController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get team members for a project' })
   @ApiParam({ name: 'id', description: 'Project UUID' })
-  @ApiResponse({ status: 200, description: 'Returns list of team members with their roles' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns list of team members with their roles',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   getTeamMembers(@Param('id') id: string) {

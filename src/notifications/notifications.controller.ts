@@ -8,7 +8,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,10 +28,16 @@ export class NotificationsController {
   @Post()
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a notification' })
-  @ApiResponse({ status: 201, description: 'Notification successfully created' })
+  @ApiResponse({
+    status: 201,
+    description: 'Notification successfully created',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User or issue not found' })
-  create(@Body() createNotificationDto: CreateNotificationDto, @Req() req: any) {
+  create(
+    @Body() createNotificationDto: CreateNotificationDto,
+    @Req() req: any,
+  ) {
     return this.notificationsService.create(req.user.id, createNotificationDto);
   }
 
@@ -33,7 +45,10 @@ export class NotificationsController {
   @Get()
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all notifications for current user' })
-  @ApiResponse({ status: 200, description: 'Returns list of user notifications' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns list of user notifications',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findByUser(@Req() req: any) {
     return this.notificationsService.findByUser(req.user.id);
@@ -67,10 +82,13 @@ export class NotificationsController {
   @Put('read-all')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Mark all notifications as read for current user' })
-  @ApiResponse({ status: 200, description: 'All notifications marked as read', schema: { properties: { count: { type: 'number' } } } })
+  @ApiResponse({
+    status: 200,
+    description: 'All notifications marked as read',
+    schema: { properties: { count: { type: 'number' } } },
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   markAllAsRead(@Req() req: any) {
     return this.notificationsService.markAllAsRead(req.user.id);
   }
 }
-

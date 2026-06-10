@@ -17,5 +17,3 @@ export class CreateNotificationDto {
   @IsUUID()
   issueId?: string;
 }
-
-

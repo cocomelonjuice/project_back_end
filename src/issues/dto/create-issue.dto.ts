@@ -43,7 +43,3 @@ export class CreateIssueDto {
   @IsUUID()
   sprintId?: string;
 }
-
-
-
-

@@ -26,7 +26,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     // Extract roles and permissions from user's roles
     const roles = user.roles?.map((role) => role.name) || [];
-    const permissions = user.roles?.flatMap((role) => role.permissions || []) || [];
+    const permissions =
+      user.roles?.flatMap((role) => role.permissions || []) || [];
     // Remove duplicates from permissions
     const uniquePermissions = [...new Set(permissions)];
 
@@ -40,4 +41,3 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     };
   }
 }
-

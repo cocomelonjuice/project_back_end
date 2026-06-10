@@ -7,5 +7,3 @@ export class CreateTransitionDto {
   @IsUUID()
   toStatusId: string;
 }
-
-

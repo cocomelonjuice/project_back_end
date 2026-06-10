@@ -9,14 +9,9 @@ import { Issue } from '../issues/entities/issue.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Notification, User, Issue]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Notification, User, Issue]), AuthModule],
   controllers: [NotificationsController],
   providers: [NotificationsService, NotificationsGateway],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}
-
-

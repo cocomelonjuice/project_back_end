@@ -14,7 +14,7 @@ async function bootstrap() {
     'http://localhost:3000',
     ...(frontendUrl ? [frontendUrl] : []),
   ];
-  
+
   // Enable CORS for frontend
   app.enableCors({
     origin: allowedOrigins, // Supports localhost for dev and FRONTEND_URL for deployed FE
@@ -22,11 +22,13 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
-  
+
   // Swagger/OpenAPI Configuration
   const config = new DocumentBuilder()
     .setTitle('Jira-like API')
-    .setDescription('Complete RESTful API documentation for Jira-like project management system')
+    .setDescription(
+      'Complete RESTful API documentation for Jira-like project management system',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -57,7 +59,7 @@ async function bootstrap() {
     .addTag('Audit Logs', 'Audit log viewing')
     .addTag('Chat', 'AI assistant chat (Groq) and conversation history')
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
@@ -72,12 +74,12 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  
+
   // Seed roles on startup
   try {
     const dataSource = app.get(DataSource);
     await seedRoles(dataSource);
-    
+
     // Also try to assign admin role to user "admin" if exists (in case seed didn't catch it)
     try {
       await assignAdminRoleToUser(dataSource, 'admin');
@@ -88,9 +90,13 @@ async function bootstrap() {
   } catch (error) {
     console.warn('⚠️  Could not seed roles:', error.message);
   }
-  
+
   await app.listen(process.env.PORT ?? 3000);
-  console.log(`🚀 Application is running on: http://localhost:${process.env.PORT ?? 3000}`);
-  console.log(`📚 Swagger documentation available at: http://localhost:${process.env.PORT ?? 3000}/api`);
+  console.log(
+    `🚀 Application is running on: http://localhost:${process.env.PORT ?? 3000}`,
+  );
+  console.log(
+    `📚 Swagger documentation available at: http://localhost:${process.env.PORT ?? 3000}/api`,
+  );
 }
 bootstrap();

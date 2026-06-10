@@ -12,5 +12,3 @@ import { Project } from '../projects/entities/project.entity';
   exports: [BoardsService],
 })
 export class BoardsModule {}
-
-

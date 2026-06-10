@@ -1,5 +1,12 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuditLogsService } from './audit-logs.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -12,11 +19,22 @@ export class AuditLogsController {
   @Get()
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all audit logs (with optional filters)' })
-  @ApiQuery({ name: 'entityType', required: false, description: 'Filter by entity type (e.g., "issue", "project")' })
-  @ApiQuery({ name: 'entityId', required: false, description: 'Filter by entity UUID' })
+  @ApiQuery({
+    name: 'entityType',
+    required: false,
+    description: 'Filter by entity type (e.g., "issue", "project")',
+  })
+  @ApiQuery({
+    name: 'entityId',
+    required: false,
+    description: 'Filter by entity UUID',
+  })
   @ApiResponse({ status: 200, description: 'Returns list of audit logs' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  findAll(@Query('entityType') entityType?: string, @Query('entityId') entityId?: string) {
+  findAll(
+    @Query('entityType') entityType?: string,
+    @Query('entityId') entityId?: string,
+  ) {
     if (entityType && entityId) {
       return this.auditLogsService.findByEntity(entityType, entityId);
     }
@@ -35,4 +53,3 @@ export class AuditLogsController {
     return this.auditLogsService.findOne(id);
   }
 }
-

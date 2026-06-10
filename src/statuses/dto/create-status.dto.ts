@@ -9,8 +9,3 @@ export class CreateStatusDto {
   @Length(2, 20)
   category: string;
 }
-
-
-
-
-

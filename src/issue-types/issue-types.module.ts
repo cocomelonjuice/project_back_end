@@ -11,8 +11,3 @@ import { IssueTypesController } from './issue-types.controller';
   exports: [IssueTypesService],
 })
 export class IssueTypesModule {}
-
-
-
-
-

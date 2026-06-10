@@ -13,5 +13,3 @@ import { Issue } from '../issues/entities/issue.entity';
   exports: [SprintsService],
 })
 export class SprintsModule {}
-
-

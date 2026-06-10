@@ -89,7 +89,3 @@ export class SearchQueryDto {
   @IsString({ each: true })
   issueKeys?: string[];
 }
-
-
-
-

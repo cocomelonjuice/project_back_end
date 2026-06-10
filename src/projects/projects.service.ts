@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
@@ -25,7 +29,9 @@ export class ProjectsService {
       for (let i = 0; i < length; i += 1) {
         key += chars[Math.floor(Math.random() * chars.length)];
       }
-      const existing = await this.projectsRepository.findOne({ where: { key } });
+      const existing = await this.projectsRepository.findOne({
+        where: { key },
+      });
       if (!existing) {
         return key;
       }
@@ -45,7 +51,10 @@ export class ProjectsService {
     return this.projectsRepository.find();
   }
 
-  async findManagedProjects(userId: string, isAdmin: boolean): Promise<Project[]> {
+  async findManagedProjects(
+    userId: string,
+    isAdmin: boolean,
+  ): Promise<Project[]> {
     if (isAdmin) {
       return this.findAll();
     }
@@ -76,11 +85,11 @@ export class ProjectsService {
   async remove(id: string): Promise<void> {
     // First check if project exists
     const project = await this.findOne(id);
-    
+
     try {
       // Use delete() instead of remove() - it handles foreign key constraints better
       const result = await this.projectsRepository.delete(id);
-      
+
       // Check if deletion was successful
       if (result.affected === 0) {
         throw new NotFoundException(`Project ${id} not found`);
@@ -94,29 +103,38 @@ export class ProjectsService {
         error.message?.includes('violates foreign key')
       ) {
         throw new BadRequestException(
-          'Cannot delete project: it has related issues, boards, or roles. Please delete or reassign them first.'
+          'Cannot delete project: it has related issues, boards, or roles. Please delete or reassign them first.',
         );
       }
-      
+
       // If it's already a NestJS exception, re-throw it
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      
+
       // For other errors, log and throw a generic error
       console.error(`Error deleting project ${id}:`, error);
-      throw new BadRequestException(`Failed to delete project: ${error.message || 'Unknown error'}`);
+      throw new BadRequestException(
+        `Failed to delete project: ${error.message || 'Unknown error'}`,
+      );
     }
   }
 
-  async getTeamMembers(projectId: string): Promise<Array<{ user: User; role: Role }>> {
+  async getTeamMembers(
+    projectId: string,
+  ): Promise<Array<{ user: User; role: Role }>> {
     // Verify project exists
     await this.findOne(projectId);
 
     // Get all roles that belong to this project
     const projectRoles = await this.rolesRepository
       .createQueryBuilder('role')
-      .innerJoin('role.projects', 'project', 'project.id = :projectId', { projectId })
+      .innerJoin('role.projects', 'project', 'project.id = :projectId', {
+        projectId,
+      })
       .getMany();
 
     if (projectRoles.length === 0) {
@@ -150,9 +168,16 @@ export class ProjectsService {
       const userRoleAssignment = await this.usersRepository
         .createQueryBuilder('user')
         .innerJoin('user.roles', 'role')
-        .innerJoin('role.projects', 'project', 'project.id = :projectId', { projectId })
+        .innerJoin('role.projects', 'project', 'project.id = :projectId', {
+          projectId,
+        })
         .where('user.id = :userId', { userId: user.id })
-        .select(['role.id', 'role.name', 'role.description', 'role.permissions'])
+        .select([
+          'role.id',
+          'role.name',
+          'role.description',
+          'role.permissions',
+        ])
         .getRawMany();
 
       if (userRoleAssignment && userRoleAssignment.length > 0) {
@@ -160,7 +185,7 @@ export class ProjectsService {
         // In a real app, you might want to track assignment date
         const roleId = userRoleAssignment[0].role_id;
         const role = projectRoles.find((r) => r.id === roleId);
-        
+
         if (role) {
           teamMembers.push({
             user,
@@ -173,4 +198,3 @@ export class ProjectsService {
     return teamMembers;
   }
 }
-

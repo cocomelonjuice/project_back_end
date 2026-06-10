@@ -9,8 +9,3 @@ export class CreateIssueTypeDto {
   @IsString()
   description?: string;
 }
-
-
-
-
-

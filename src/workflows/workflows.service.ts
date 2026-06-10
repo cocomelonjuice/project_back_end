@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Workflow } from './entities/workflow.entity';
@@ -22,7 +26,10 @@ export class WorkflowsService {
     private statusesRepository: Repository<Status>,
   ) {}
 
-  private async ensureProjectHasNoWorkflow(projectId: string, excludeWorkflowId?: string) {
+  private async ensureProjectHasNoWorkflow(
+    projectId: string,
+    excludeWorkflowId?: string,
+  ) {
     const existing = await this.workflowsRepository.findOne({
       where: {
         isActive: true,
@@ -32,7 +39,9 @@ export class WorkflowsService {
     });
 
     if (existing && existing.id !== excludeWorkflowId) {
-      throw new BadRequestException('This project already has a workflow assigned');
+      throw new BadRequestException(
+        'This project already has a workflow assigned',
+      );
     }
   }
 
@@ -59,7 +68,12 @@ export class WorkflowsService {
 
   async findAll(): Promise<Workflow[]> {
     return await this.workflowsRepository.find({
-      relations: ['project', 'transitions', 'transitions.fromStatus', 'transitions.toStatus'],
+      relations: [
+        'project',
+        'transitions',
+        'transitions.fromStatus',
+        'transitions.toStatus',
+      ],
       order: { name: 'ASC' },
     });
   }
@@ -67,7 +81,12 @@ export class WorkflowsService {
   async findOne(id: string): Promise<Workflow> {
     const workflow = await this.workflowsRepository.findOne({
       where: { id },
-      relations: ['project', 'transitions', 'transitions.fromStatus', 'transitions.toStatus'],
+      relations: [
+        'project',
+        'transitions',
+        'transitions.fromStatus',
+        'transitions.toStatus',
+      ],
     });
 
     if (!workflow) {
@@ -77,7 +96,10 @@ export class WorkflowsService {
     return workflow;
   }
 
-  async update(id: string, updateWorkflowDto: UpdateWorkflowDto): Promise<Workflow> {
+  async update(
+    id: string,
+    updateWorkflowDto: UpdateWorkflowDto,
+  ): Promise<Workflow> {
     const workflow = await this.findOne(id);
 
     if (updateWorkflowDto.projectId !== undefined) {
@@ -98,7 +120,10 @@ export class WorkflowsService {
           `Project with ID ${updateWorkflowDto.projectId} not found`,
         );
       }
-      await this.ensureProjectHasNoWorkflow(updateWorkflowDto.projectId, workflow.id);
+      await this.ensureProjectHasNoWorkflow(
+        updateWorkflowDto.projectId,
+        workflow.id,
+      );
       workflow.project = project;
     }
 
@@ -121,7 +146,12 @@ export class WorkflowsService {
   async getByProject(projectId: string): Promise<Workflow | null> {
     return await this.workflowsRepository.findOne({
       where: { isActive: true, project: { id: projectId } as any },
-      relations: ['project', 'transitions', 'transitions.fromStatus', 'transitions.toStatus'],
+      relations: [
+        'project',
+        'transitions',
+        'transitions.fromStatus',
+        'transitions.toStatus',
+      ],
     });
   }
 
@@ -168,7 +198,10 @@ export class WorkflowsService {
     return await this.transitionsRepository.save(transition);
   }
 
-  async removeTransition(workflowId: string, transitionId: string): Promise<void> {
+  async removeTransition(
+    workflowId: string,
+    transitionId: string,
+  ): Promise<void> {
     const workflow = await this.findOne(workflowId);
 
     const transition = await this.transitionsRepository.findOne({
@@ -177,7 +210,9 @@ export class WorkflowsService {
     });
 
     if (!transition) {
-      throw new NotFoundException(`Transition with ID ${transitionId} not found`);
+      throw new NotFoundException(
+        `Transition with ID ${transitionId} not found`,
+      );
     }
 
     if (transition.workflow.id !== workflowId) {
@@ -189,4 +224,3 @@ export class WorkflowsService {
     await this.transitionsRepository.remove(transition);
   }
 }
-

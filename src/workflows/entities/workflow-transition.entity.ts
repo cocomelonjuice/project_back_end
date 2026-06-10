@@ -1,9 +1,4 @@
-import {
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Workflow } from './workflow.entity';
 import { Status } from '../../statuses/entities/status.entity';
 
@@ -27,5 +22,3 @@ export class WorkflowTransition {
   @JoinColumn({ name: 'to_status_id' })
   toStatus: Status;
 }
-
-

@@ -35,7 +35,3 @@ import { WorkflowTransition } from '../workflows/entities/workflow-transition.en
   exports: [IssuesService],
 })
 export class IssuesModule {}
-
-
-
-

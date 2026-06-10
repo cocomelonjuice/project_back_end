@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, Inject, forwardRef, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { Issue } from './entities/issue.entity';
@@ -101,7 +107,9 @@ export class IssuesService {
     }
 
     if ((sprintWithBoard.board.type || '').toLowerCase() === 'kanban') {
-      throw new BadRequestException('Cannot assign sprint for issues in Kanban board');
+      throw new BadRequestException(
+        'Cannot assign sprint for issues in Kanban board',
+      );
     }
   }
 
@@ -111,7 +119,11 @@ export class IssuesService {
         isActive: true,
         project: { id: projectId } as any,
       },
-      relations: ['transitions', 'transitions.fromStatus', 'transitions.toStatus'],
+      relations: [
+        'transitions',
+        'transitions.fromStatus',
+        'transitions.toStatus',
+      ],
     });
 
     if (activeProjectWorkflows.length > 1) {
@@ -123,10 +135,7 @@ export class IssuesService {
     return activeProjectWorkflows[0] || null;
   }
 
-  private async validateWorkflowTransition(
-    issue: Issue,
-    nextStatusId: string,
-  ) {
+  private async validateWorkflowTransition(issue: Issue, nextStatusId: string) {
     if (!issue.status?.id || issue.status.id === nextStatusId) {
       return;
     }
@@ -164,7 +173,9 @@ export class IssuesService {
     // Transition rules are interpreted at category level.
     // Auto-backward is enabled: A->B also permits B->A.
     const isAllowed = transitions.some((transition) => {
-      const fromCategory = (transition.fromStatus?.category || '').toLowerCase();
+      const fromCategory = (
+        transition.fromStatus?.category || ''
+      ).toLowerCase();
       const toCategory = (transition.toStatus?.category || '').toLowerCase();
       const directMatch =
         fromCategory === currentCategory && toCategory === targetCategory;
@@ -184,40 +195,41 @@ export class IssuesService {
 
   async create(projectId: string, dto: CreateIssueDto) {
     const project = await this.getProject(projectId);
-    const [type, priority, status, assignee, reporter, sprint] = await Promise.all([
-      this.resolveOptionalRelation(
-        this.issueTypesRepository,
-        dto.typeId,
-        'Issue type',
-      ),
-      this.resolveOptionalRelation(
-        this.prioritiesRepository,
-        dto.priorityId,
-        'Priority',
-      ),
-      this.resolveOptionalRelation(
-        this.statusesRepository,
-        dto.statusId,
-        'Status',
-      ),
-      this.resolveOptionalRelation(
-        this.usersRepository,
-        dto.assigneeId,
-        'Assignee',
-      ),
-      this.resolveOptionalRelation(
-        this.usersRepository,
-        dto.reporterId,
-        'Reporter',
-      ),
-      this.resolveOptionalRelation(
-        this.sprintsRepository,
-        dto.sprintId,
-        'Sprint',
-      ),
-    ]);
+    const [type, priority, status, assignee, reporter, sprint] =
+      await Promise.all([
+        this.resolveOptionalRelation(
+          this.issueTypesRepository,
+          dto.typeId,
+          'Issue type',
+        ),
+        this.resolveOptionalRelation(
+          this.prioritiesRepository,
+          dto.priorityId,
+          'Priority',
+        ),
+        this.resolveOptionalRelation(
+          this.statusesRepository,
+          dto.statusId,
+          'Status',
+        ),
+        this.resolveOptionalRelation(
+          this.usersRepository,
+          dto.assigneeId,
+          'Assignee',
+        ),
+        this.resolveOptionalRelation(
+          this.usersRepository,
+          dto.reporterId,
+          'Reporter',
+        ),
+        this.resolveOptionalRelation(
+          this.sprintsRepository,
+          dto.sprintId,
+          'Sprint',
+        ),
+      ]);
 
-    await this.validateSprintUsage(project.id, sprint as Sprint | null);
+    await this.validateSprintUsage(project.id, sprint);
 
     const issue = this.issuesRepository.create({
       summary: dto.summary,
@@ -245,7 +257,10 @@ export class IssuesService {
         });
       } catch (error) {
         // Log error but don't fail the issue creation
-        console.error('Failed to create notification for issue assignment:', error);
+        console.error(
+          'Failed to create notification for issue assignment:',
+          error,
+        );
       }
     }
 
@@ -273,11 +288,15 @@ export class IssuesService {
       }
 
       if (query.assigneeId) {
-        qb.andWhere('assignee.id = :assigneeId', { assigneeId: query.assigneeId });
+        qb.andWhere('assignee.id = :assigneeId', {
+          assigneeId: query.assigneeId,
+        });
       }
 
       if (query.priorityId) {
-        qb.andWhere('priority.id = :priorityId', { priorityId: query.priorityId });
+        qb.andWhere('priority.id = :priorityId', {
+          priorityId: query.priorityId,
+        });
       }
 
       return await qb.getMany();
@@ -359,7 +378,7 @@ export class IssuesService {
         dto.sprintId,
         'Sprint',
       );
-      await this.validateSprintUsage(issue.project.id, resolvedSprint as Sprint | null);
+      await this.validateSprintUsage(issue.project.id, resolvedSprint);
       issue.sprint = resolvedSprint;
     }
 
@@ -368,7 +387,11 @@ export class IssuesService {
     // Create notifications for changes
     try {
       // Notify if assignee changed
-      if (dto.assigneeId !== undefined && savedIssue.assignee && savedIssue.assignee.id !== oldAssignee?.id) {
+      if (
+        dto.assigneeId !== undefined &&
+        savedIssue.assignee &&
+        savedIssue.assignee.id !== oldAssignee?.id
+      ) {
         await this.notificationsService.create(savedIssue.assignee.id, {
           title: 'Issue assigned to you',
           message: `Issue "${savedIssue.summary}" has been assigned to you`,
@@ -378,7 +401,12 @@ export class IssuesService {
       }
 
       // Notify if status changed and assignee exists
-      if (dto.statusId !== undefined && savedIssue.status && savedIssue.status.id !== oldStatus?.id && savedIssue.assignee) {
+      if (
+        dto.statusId !== undefined &&
+        savedIssue.status &&
+        savedIssue.status.id !== oldStatus?.id &&
+        savedIssue.assignee
+      ) {
         await this.notificationsService.create(savedIssue.assignee.id, {
           title: 'Issue status changed',
           message: `Issue "${savedIssue.summary}" status changed to "${savedIssue.status.name}"`,
@@ -419,7 +447,10 @@ export class IssuesService {
           issueId: savedIssue.id,
         });
       } catch (error) {
-        console.error('Failed to create notification for issue assignment:', error);
+        console.error(
+          'Failed to create notification for issue assignment:',
+          error,
+        );
       }
     }
 
@@ -438,7 +469,11 @@ export class IssuesService {
     const savedIssue = await this.issuesRepository.save(issue);
 
     // Create notification for assignee if status changed
-    if (savedIssue.assignee && savedIssue.status && savedIssue.status.id !== oldStatus?.id) {
+    if (
+      savedIssue.assignee &&
+      savedIssue.status &&
+      savedIssue.status.id !== oldStatus?.id
+    ) {
       try {
         await this.notificationsService.create(savedIssue.assignee.id, {
           title: 'Issue status changed',
@@ -447,11 +482,13 @@ export class IssuesService {
           issueId: savedIssue.id,
         });
       } catch (error) {
-        console.error('Failed to create notification for status change:', error);
+        console.error(
+          'Failed to create notification for status change:',
+          error,
+        );
       }
     }
 
     return savedIssue;
   }
 }
-

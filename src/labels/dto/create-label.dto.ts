@@ -16,5 +16,3 @@ export class CreateLabelDto {
   @IsString()
   description?: string;
 }
-
-

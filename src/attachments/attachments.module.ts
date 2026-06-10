@@ -19,5 +19,3 @@ import { StorageModule } from '../storage/storage.module';
   exports: [AttachmentsService],
 })
 export class AttachmentsModule {}
-
-

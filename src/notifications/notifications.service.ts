@@ -82,7 +82,10 @@ export class NotificationsService {
     };
   }
 
-  private async pushNotificationRealtime(userId: string, notificationId: string) {
+  private async pushNotificationRealtime(
+    userId: string,
+    notificationId: string,
+  ) {
     try {
       const full = await this.notificationsRepository.findOne({
         where: { id: notificationId },
@@ -144,4 +147,3 @@ export class NotificationsService {
     return { count: result.affected || 0 };
   }
 }
-

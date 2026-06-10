@@ -1,6 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
@@ -12,11 +17,17 @@ export class SpacesService {
   constructor(private readonly configService: ConfigService) {
     const endpoint = this.configService.get<string>('SPACES_ENDPOINT')?.trim();
     const region = this.configService.get<string>('SPACES_REGION', 'sgp1');
-    const accessKeyId = this.configService.get<string>('SPACES_ACCESS_KEY_ID')?.trim();
-    const secretAccessKey = this.configService.get<string>('SPACES_SECRET_ACCESS_KEY')?.trim();
+    const accessKeyId = this.configService
+      .get<string>('SPACES_ACCESS_KEY_ID')
+      ?.trim();
+    const secretAccessKey = this.configService
+      .get<string>('SPACES_SECRET_ACCESS_KEY')
+      ?.trim();
     this.bucket = this.configService.get<string>('SPACES_BUCKET', '').trim();
 
-    this.enabled = Boolean(endpoint && accessKeyId && secretAccessKey && this.bucket);
+    this.enabled = Boolean(
+      endpoint && accessKeyId && secretAccessKey && this.bucket,
+    );
 
     this.client = new S3Client({
       region,
@@ -40,7 +51,11 @@ export class SpacesService {
     return this.bucket;
   }
 
-  async uploadObject(key: string, body: Buffer, contentType: string): Promise<void> {
+  async uploadObject(
+    key: string,
+    body: Buffer,
+    contentType: string,
+  ): Promise<void> {
     this.ensureEnabled();
     await this.client.send(
       new PutObjectCommand({
@@ -62,7 +77,10 @@ export class SpacesService {
     );
   }
 
-  async getSignedDownloadUrl(key: string, expiresInSeconds = 600): Promise<string> {
+  async getSignedDownloadUrl(
+    key: string,
+    expiresInSeconds = 600,
+  ): Promise<string> {
     this.ensureEnabled();
     const cmd = new GetObjectCommand({
       Bucket: this.bucket,

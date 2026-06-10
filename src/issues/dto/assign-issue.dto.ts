@@ -6,8 +6,3 @@ export class AssignIssueDto {
   @IsUUID()
   assigneeId?: string | null;
 }
-
-
-
-
-

@@ -63,9 +63,7 @@ export class UsersService {
       .getOne();
   }
 
-  async findByPasswordResetTokenHash(
-    tokenHash: string,
-  ): Promise<User | null> {
+  async findByPasswordResetTokenHash(tokenHash: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { passwordResetTokenHash: tokenHash },
     });
@@ -99,7 +97,16 @@ export class UsersService {
   findByUsername(username: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { username },
-      select: ['id', 'username', 'email', 'displayName', 'passwordHash', 'isActive', 'createdAt', 'updatedAt'],
+      select: [
+        'id',
+        'username',
+        'email',
+        'displayName',
+        'passwordHash',
+        'isActive',
+        'createdAt',
+        'updatedAt',
+      ],
     });
   }
 
@@ -112,4 +119,3 @@ export class UsersService {
     await this.usersRepository.delete({ id });
   }
 }
-

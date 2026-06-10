@@ -980,10 +980,13 @@ export class ChatService {
       const issue = await this.issuesService.findOne(issueId);
       const who =
         issue.assignee?.displayName ?? issue.assignee?.username ?? 'Unassigned';
+      const getIssueLink = issue.project?.id
+        ? `\nLink: /projects/${issue.project.id}/issues/${issue.id}`
+        : '';
       return this.actionSuccess(
         locale,
-        `Issue: ${issue.summary}\nStatus: ${issue.status?.name ?? 'Unknown'}\nPriority: ${issue.priority?.name ?? 'Unknown'}\nAssignee: ${who}`,
-        `Issue: ${issue.summary}\nTrạng thái: ${issue.status?.name ?? 'Không rõ'}\nƯu tiên: ${issue.priority?.name ?? 'Không rõ'}\nNgười được giao: ${who === 'Unassigned' ? 'Chưa giao' : who}`,
+        `Issue: ${issue.summary}\nStatus: ${issue.status?.name ?? 'Unknown'}\nPriority: ${issue.priority?.name ?? 'Unknown'}\nAssignee: ${who}${getIssueLink}`,
+        `Issue: ${issue.summary}\nTrạng thái: ${issue.status?.name ?? 'Không rõ'}\nƯu tiên: ${issue.priority?.name ?? 'Không rõ'}\nNgười được giao: ${who === 'Unassigned' ? 'Chưa giao' : who}${getIssueLink}`,
       );
     }
 
@@ -1002,10 +1005,13 @@ export class ChatService {
         sprintId: decision.payload?.sprintId,
       });
       // Do not prepend decision.reply — it often still asks for IDs after the server resolved them.
+      const createIssueLink = created.project?.id
+        ? `\nLink: /projects/${created.project.id}/issues/${created.id}`
+        : '';
       return this.actionSuccess(
         locale,
-        `Created issue: ${created.summary}.`,
-        `Đã tạo issue: ${created.summary}.`,
+        `Created issue: ${created.summary}.${createIssueLink}`,
+        `Đã tạo issue: ${created.summary}.${createIssueLink}`,
       );
     }
 
@@ -1022,10 +1028,13 @@ export class ChatService {
         reporterId: decision.payload?.reporterId,
         sprintId: decision.payload?.sprintId,
       });
+      const updateIssueLink = updated.project?.id
+        ? `\nLink: /projects/${updated.project.id}/issues/${updated.id}`
+        : '';
       return this.actionSuccess(
         locale,
-        `Updated issue: ${updated.summary}.`,
-        `Đã cập nhật issue: ${updated.summary}.`,
+        `Updated issue: ${updated.summary}.${updateIssueLink}`,
+        `Đã cập nhật issue: ${updated.summary}.${updateIssueLink}`,
       );
     }
 
@@ -1039,10 +1048,13 @@ export class ChatService {
         assigned.assignee?.displayName ??
         assigned.assignee?.username ??
         'Unassigned';
+      const assignLink = assigned.project?.id
+        ? `\nLink: /projects/${assigned.project.id}/issues/${assigned.id}`
+        : '';
       return this.actionSuccess(
         locale,
-        `Assignee: ${who}.`,
-        `Người được giao: ${who === 'Unassigned' ? 'Chưa giao' : who}.`,
+        `Assignee: ${who}.${assignLink}`,
+        `Người được giao: ${who === 'Unassigned' ? 'Chưa giao' : who}.${assignLink}`,
       );
     }
 
@@ -1053,10 +1065,13 @@ export class ChatService {
       const transitioned = await this.issuesService.transition(issueId, {
         statusId,
       });
+      const transitionLink = transitioned.project?.id
+        ? `\nLink: /projects/${transitioned.project.id}/issues/${transitioned.id}`
+        : '';
       return this.actionSuccess(
         locale,
-        `Status: ${transitioned.status?.name ?? 'Unknown'}.`,
-        `Trạng thái: ${transitioned.status?.name ?? 'Không rõ'}.`,
+        `Status: ${transitioned.status?.name ?? 'Unknown'}.${transitionLink}`,
+        `Trạng thái: ${transitioned.status?.name ?? 'Không rõ'}.${transitionLink}`,
       );
     }
 
@@ -1067,7 +1082,20 @@ export class ChatService {
       await this.commentsService.create(issueId, userId, {
         content,
       });
-      return this.actionSuccess(locale, 'Comment added.', 'Đã thêm bình luận.');
+      let commentIssueLink = '';
+      try {
+        const commentIssue = await this.issuesService.findOne(issueId);
+        if (commentIssue.project?.id) {
+          commentIssueLink = `\nLink: /projects/${commentIssue.project.id}/issues/${commentIssue.id}`;
+        }
+      } catch {
+        // best-effort
+      }
+      return this.actionSuccess(
+        locale,
+        `Comment added.${commentIssueLink}`,
+        `Đã thêm bình luận.${commentIssueLink}`,
+      );
     }
 
     if (decision.intent === 'create_project') {
@@ -1081,10 +1109,13 @@ export class ChatService {
         type: projectType,
         description: decision.payload?.description,
       });
+      const createProjectLink = created.id
+        ? `\nLink: /projects/${created.id}`
+        : '';
       return this.actionSuccess(
         locale,
-        `Created project: ${created.name} (${created.key}).`,
-        `Đã tạo project: ${created.name} (${created.key}).`,
+        `Created project: ${created.name} (${created.key}).${createProjectLink}`,
+        `Đã tạo project: ${created.name} (${created.key}).${createProjectLink}`,
       );
     }
 
@@ -1097,10 +1128,13 @@ export class ChatService {
         type: decision.payload?.projectType,
         description: decision.payload?.description,
       });
+      const updateProjectLink = updated.id
+        ? `\nLink: /projects/${updated.id}`
+        : '';
       return this.actionSuccess(
         locale,
-        `Updated project: ${updated.name}.`,
-        `Đã cập nhật project: ${updated.name}.`,
+        `Updated project: ${updated.name}.${updateProjectLink}`,
+        `Đã cập nhật project: ${updated.name}.${updateProjectLink}`,
       );
     }
 
@@ -1292,10 +1326,19 @@ export class ChatService {
       const labelId = decision.payload?.labelId?.trim();
       if (!issueId || !labelId) return decision.reply;
       await this.labelsService.addLabelToIssue(issueId, labelId);
+      let addLabelLink = '';
+      try {
+        const labelIssue = await this.issuesService.findOne(issueId);
+        if (labelIssue.project?.id) {
+          addLabelLink = `\nLink: /projects/${labelIssue.project.id}/issues/${labelIssue.id}`;
+        }
+      } catch {
+        // best-effort
+      }
       return this.actionSuccess(
         locale,
-        'Label attached to issue.',
-        'Đã gắn nhãn vào issue.',
+        `Label attached to issue.${addLabelLink}`,
+        `Đã gắn nhãn vào issue.${addLabelLink}`,
       );
     }
 
@@ -1304,10 +1347,19 @@ export class ChatService {
       const labelId = decision.payload?.labelId?.trim();
       if (!issueId || !labelId) return decision.reply;
       await this.labelsService.removeLabelFromIssue(issueId, labelId);
+      let removeLabelLink = '';
+      try {
+        const labelIssue = await this.issuesService.findOne(issueId);
+        if (labelIssue.project?.id) {
+          removeLabelLink = `\nLink: /projects/${labelIssue.project.id}/issues/${labelIssue.id}`;
+        }
+      } catch {
+        // best-effort
+      }
       return this.actionSuccess(
         locale,
-        'Label removed from issue.',
-        'Đã gỡ nhãn khỏi issue.',
+        `Label removed from issue.${removeLabelLink}`,
+        `Đã gỡ nhãn khỏi issue.${removeLabelLink}`,
       );
     }
 

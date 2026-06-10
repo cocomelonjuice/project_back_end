@@ -43,4 +43,3 @@ export class Project {
   @ManyToMany(() => Role, (role) => role.projects)
   roles: Role[];
 }
-

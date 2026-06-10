@@ -8,7 +8,13 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { StatusesService } from './statuses.service';
 import { CreateStatusDto } from './dto/create-status.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
@@ -76,7 +82,3 @@ export class StatusesController {
     return this.statusesService.remove(id);
   }
 }
-
-
-
-

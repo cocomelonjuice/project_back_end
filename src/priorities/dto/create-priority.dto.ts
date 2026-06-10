@@ -9,8 +9,3 @@ export class CreatePriorityDto {
   @IsPositive()
   orderNum: number;
 }
-
-
-
-
-

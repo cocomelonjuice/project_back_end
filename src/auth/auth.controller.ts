@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -35,7 +28,10 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'User login' })
-  @ApiResponse({ status: 200, description: 'Login successful, returns JWT token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful, returns JWT token',
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
@@ -70,4 +66,3 @@ export class AuthController {
     return user;
   }
 }
-

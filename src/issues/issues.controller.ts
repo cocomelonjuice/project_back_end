@@ -9,7 +9,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -31,21 +38,32 @@ export class IssuesController {
   @ApiResponse({ status: 201, description: 'Issue successfully created' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Project not found' })
-  create(
-    @Param('projectId') projectId: string,
-    @Body() dto: CreateIssueDto,
-  ) {
+  create(@Param('projectId') projectId: string, @Body() dto: CreateIssueDto) {
     return this.issuesService.create(projectId, dto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('projects/:projectId/issues')
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all issues for a project (with optional filters)' })
+  @ApiOperation({
+    summary: 'Get all issues for a project (with optional filters)',
+  })
   @ApiParam({ name: 'projectId', description: 'Project UUID' })
-  @ApiQuery({ name: 'statusId', required: false, description: 'Filter by status UUID' })
-  @ApiQuery({ name: 'assigneeId', required: false, description: 'Filter by assignee UUID' })
-  @ApiQuery({ name: 'priorityId', required: false, description: 'Filter by priority UUID' })
+  @ApiQuery({
+    name: 'statusId',
+    required: false,
+    description: 'Filter by status UUID',
+  })
+  @ApiQuery({
+    name: 'assigneeId',
+    required: false,
+    description: 'Filter by assignee UUID',
+  })
+  @ApiQuery({
+    name: 'priorityId',
+    required: false,
+    description: 'Filter by priority UUID',
+  })
   @ApiResponse({ status: 200, description: 'Returns list of issues' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findByProject(
@@ -108,14 +126,13 @@ export class IssuesController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Change issue status (transition)' })
   @ApiParam({ name: 'id', description: 'Issue UUID' })
-  @ApiResponse({ status: 200, description: 'Issue status successfully changed' })
+  @ApiResponse({
+    status: 200,
+    description: 'Issue status successfully changed',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Issue or status not found' })
   transition(@Param('id') id: string, @Body() dto: TransitionIssueDto) {
     return this.issuesService.transition(id, dto);
   }
 }
-
-
-
-

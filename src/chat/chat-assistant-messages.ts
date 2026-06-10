@@ -14,8 +14,7 @@ export type ChatAssistantStrings = {
 
 const M = {
   en: {
-    confirmHint:
-      '\n\nReply **YES** to confirm or **NO** to cancel.',
+    confirmHint: '\n\nReply **YES** to confirm or **NO** to cancel.',
     invalidJson:
       'I could not read a valid action from the model. Please rephrase briefly and try again.',
     unavailable:
@@ -34,12 +33,10 @@ const M = {
     issueCreated: 'Created issue: {summary}.',
   },
   vi: {
-    confirmHint:
-      '\n\nTrả lời **YES** để xác nhận hoặc **NO** để hủy.',
+    confirmHint: '\n\nTrả lời **YES** để xác nhận hoặc **NO** để hủy.',
     invalidJson:
       'Không đọc được lệnh hợp lệ từ mô hình. Vui lòng diễn đạt ngắn gọn và thử lại.',
-    unavailable:
-      'Trợ lý tạm thời không khả dụng. Vui lòng thử lại sau.',
+    unavailable: 'Trợ lý tạm thời không khả dụng. Vui lòng thử lại sau.',
     unavailableRateLimit:
       'Dịch vụ AI đang bị giới hạn tần suất. Vui lòng đợi một lát rồi thử lại.',
     unavailableConfig:
@@ -54,7 +51,9 @@ const M = {
   },
 } as const;
 
-export function chatAssistantMessages(locale: ChatLocale): ChatAssistantStrings {
+export function chatAssistantMessages(
+  locale: ChatLocale,
+): ChatAssistantStrings {
   return locale === 'vi' ? M.vi : M.en;
 }
 

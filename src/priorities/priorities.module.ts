@@ -11,8 +11,3 @@ import { Priority } from './entities/priority.entity';
   exports: [PrioritiesService],
 })
 export class PrioritiesModule {}
-
-
-
-
-

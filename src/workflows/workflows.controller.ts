@@ -8,7 +8,13 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { WorkflowsService } from './workflows.service';
 import { CreateWorkflowDto } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
@@ -30,7 +36,10 @@ export class WorkflowsController {
   @ApiResponse({ status: 201, description: 'Workflow successfully created' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Project not found (if projectId provided)' })
+  @ApiResponse({
+    status: 404,
+    description: 'Project not found (if projectId provided)',
+  })
   create(@Body() createWorkflowDto: CreateWorkflowDto) {
     return this.workflowsService.create(createWorkflowDto);
   }
@@ -50,7 +59,10 @@ export class WorkflowsController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get workflow assigned to project' })
   @ApiParam({ name: 'projectId', description: 'Project UUID' })
-  @ApiResponse({ status: 200, description: 'Returns workflow for project or null' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns workflow for project or null',
+  })
   getByProject(@Param('projectId') projectId: string) {
     return this.workflowsService.getByProject(projectId);
   }
@@ -76,7 +88,10 @@ export class WorkflowsController {
   @ApiResponse({ status: 200, description: 'Workflow successfully updated' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Workflow not found' })
-  update(@Param('id') id: string, @Body() updateWorkflowDto: UpdateWorkflowDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateWorkflowDto: UpdateWorkflowDto,
+  ) {
     return this.workflowsService.update(id, updateWorkflowDto);
   }
 
@@ -97,7 +112,10 @@ export class WorkflowsController {
   @Permissions('workflows:update')
   @Post(':id/detach')
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Detach workflow from assigned project without deleting workflow data' })
+  @ApiOperation({
+    summary:
+      'Detach workflow from assigned project without deleting workflow data',
+  })
   @ApiParam({ name: 'id', description: 'Workflow UUID' })
   @ApiResponse({ status: 200, description: 'Workflow detached from project' })
   detachFromProject(@Param('id') id: string) {
@@ -109,7 +127,10 @@ export class WorkflowsController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all status transitions for a workflow' })
   @ApiParam({ name: 'id', description: 'Workflow UUID' })
-  @ApiResponse({ status: 200, description: 'Returns list of workflow transitions' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns list of workflow transitions',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Workflow not found' })
   getTransitions(@Param('id') id: string) {
@@ -147,4 +168,3 @@ export class WorkflowsController {
     return this.workflowsService.removeTransition(id, transitionId);
   }
 }
-

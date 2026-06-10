@@ -120,7 +120,8 @@ export class AttachmentsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Attachment not found' })
   async download(@Param('id') id: string, @Res() res: Response) {
-    const { buffer, attachment } = await this.attachmentsService.getFileBuffer(id);
+    const { buffer, attachment } =
+      await this.attachmentsService.getFileBuffer(id);
 
     res.setHeader('Content-Type', attachment.mimeType);
     res.setHeader(
@@ -131,9 +132,14 @@ export class AttachmentsController {
   }
 
   @Get('attachments/:id/download-url')
-  @ApiOperation({ summary: 'Get signed download URL for an attachment (private storage)' })
+  @ApiOperation({
+    summary: 'Get signed download URL for an attachment (private storage)',
+  })
   @ApiParam({ name: 'id', description: 'Attachment UUID' })
-  @ApiResponse({ status: 200, description: 'Returns signed URL when available' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns signed URL when available',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Attachment not found' })
   getDownloadUrl(@Param('id') id: string) {
@@ -150,4 +156,3 @@ export class AttachmentsController {
     return this.attachmentsService.remove(id);
   }
 }
-

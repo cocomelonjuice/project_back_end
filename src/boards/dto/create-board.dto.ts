@@ -11,5 +11,3 @@ export class CreateBoardDto {
   @Length(3, 20)
   type: string; // 'kanban' or 'scrum'
 }
-
-

@@ -8,7 +8,13 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { LabelsService } from './labels.service';
 import { CreateLabelDto } from './dto/create-label.dto';
 import { UpdateLabelDto } from './dto/update-label.dto';
@@ -83,7 +89,10 @@ export class LabelsController {
   @ApiOperation({ summary: 'Add a label to an issue' })
   @ApiParam({ name: 'issueId', description: 'Issue UUID' })
   @ApiParam({ name: 'labelId', description: 'Label UUID' })
-  @ApiResponse({ status: 200, description: 'Label successfully added to issue' })
+  @ApiResponse({
+    status: 200,
+    description: 'Label successfully added to issue',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Issue or label not found' })
   addLabelToIssue(
@@ -99,7 +108,10 @@ export class LabelsController {
   @ApiOperation({ summary: 'Remove a label from an issue' })
   @ApiParam({ name: 'issueId', description: 'Issue UUID' })
   @ApiParam({ name: 'labelId', description: 'Label UUID' })
-  @ApiResponse({ status: 200, description: 'Label successfully removed from issue' })
+  @ApiResponse({
+    status: 200,
+    description: 'Label successfully removed from issue',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Issue or label not found' })
   removeLabelFromIssue(
@@ -109,4 +121,3 @@ export class LabelsController {
     return this.labelsService.removeLabelFromIssue(issueId, labelId);
   }
 }
-

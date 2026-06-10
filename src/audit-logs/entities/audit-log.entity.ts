@@ -38,5 +38,3 @@ export class AuditLog {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
-
-
